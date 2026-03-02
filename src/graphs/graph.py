@@ -17,6 +17,8 @@ from graphs.nodes.android_code_generation_node import android_code_generation_no
 from graphs.nodes.harmonyos_code_generation_node import harmonyos_code_generation_node
 from graphs.nodes.miniprogram_code_generation_node import miniprogram_code_generation_node
 from graphs.nodes.fetch_generated_code_node import fetch_generated_code_node
+from graphs.nodes.code_review_node import code_review_node
+from graphs.nodes.auto_test_node import auto_test_node
 
 # 创建状态图，指定图的入参和出参
 builder = StateGraph(GlobalState, input_schema=GraphInput, output_schema=GraphOutput)
@@ -36,6 +38,11 @@ builder.add_node("ios_code_generation", ios_code_generation_node, metadata={"typ
 builder.add_node("android_code_generation", android_code_generation_node, metadata={"type": "agent", "llm_cfg": "config/android_code_generation_cfg.json"})
 builder.add_node("harmonyos_code_generation", harmonyos_code_generation_node, metadata={"type": "agent", "llm_cfg": "config/harmonyos_code_generation_cfg.json"})
 builder.add_node("miniprogram_code_generation", miniprogram_code_generation_node, metadata={"type": "agent", "llm_cfg": "config/miniprogram_code_generation_cfg.json"})
+
+# 添加代码收集、审查和测试节点
+builder.add_node("fetch_generated_code", fetch_generated_code_node)
+builder.add_node("code_review", code_review_node, metadata={"type": "agent", "llm_cfg": "config/code_review_cfg.json"})
+builder.add_node("auto_test", auto_test_node, metadata={"type": "agent", "llm_cfg": "config/auto_test_cfg.json"})
 
 # 设置入口点 - 从需求分析开始
 builder.set_entry_point("requirement_analysis")
@@ -59,8 +66,12 @@ builder.add_edge("component_identify", "miniprogram_code_generation")
 # 添加边：从五端代码生成节点到 fetch_generated_code（所有并行分支完成后）
 builder.add_edge(["h5_code_generation", "ios_code_generation", "android_code_generation", "harmonyos_code_generation", "miniprogram_code_generation"], "fetch_generated_code")
 
-# 添加边：从 fetch_generated_code 到 code_gen_and_push
-builder.add_edge("fetch_generated_code", "code_gen_and_push")
+# 添加边：从 fetch_generated_code 到 code_review 和 auto_test（并行执行）
+builder.add_edge("fetch_generated_code", "code_review")
+builder.add_edge("fetch_generated_code", "auto_test")
+
+# 添加边：从 code_review 和 auto_test 到 code_gen_and_push（并行完成后）
+builder.add_edge(["code_review", "auto_test"], "code_gen_and_push")
 
 # 添加边：从 code_gen_and_push 到 END
 builder.add_edge("code_gen_and_push", END)
