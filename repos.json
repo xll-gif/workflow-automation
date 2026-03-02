@@ -1,0 +1,109 @@
+{
+  "organization": "xll-gif",
+  "base_url": "https://github.com/xll-gif",
+  "workflow_repo": {
+    "name": "workflow-automation",
+    "url": "https://github.com/xll-gif/workflow-automation.git",
+    "clone_url": "https://github.com/xll-gif/workflow-automation.git",
+    "description": "多端自动化工作流 - LangGraph 实现的前端代码生成系统",
+    "status": "active"
+  },
+  "platform_repos": [
+    {
+      "name": "ios-login-app",
+      "url": "https://github.com/xll-gif/ios-login-app.git",
+      "clone_url": "https://github.com/xll-gif/ios-login-app.git",
+      "platform": "iOS",
+      "language": "Swift",
+      "framework": "SwiftUI",
+      "min_version": "iOS 15.0",
+      "architecture": "MVVM",
+      "status": "active",
+      "components": ["Button", "InputField"],
+      "local_path": "/workspace/projects/multi-platform-apps/ios-login-app"
+    },
+    {
+      "name": "android-login-app",
+      "url": "https://github.com/xll-gif/android-login-app.git",
+      "clone_url": "https://github.com/xll-gif/android-login-app.git",
+      "platform": "Android",
+      "language": "Kotlin",
+      "framework": "Jetpack Compose",
+      "min_version": "API 24 (Android 7.0)",
+      "architecture": "MVVM",
+      "status": "active",
+      "components": ["Button", "InputField"],
+      "local_path": "/workspace/projects/multi-platform-apps/android-login-app"
+    },
+    {
+      "name": "harmonyos-login-app",
+      "url": "https://github.com/xll-gif/harmonyos-login-app.git",
+      "clone_url": "https://github.com/xll-gif/harmonyos-login-app.git",
+      "platform": "HarmonyOS",
+      "language": "ArkTS",
+      "framework": "ArkUI",
+      "min_version": "API 9 (HarmonyOS 3.0)",
+      "architecture": "MVVM",
+      "status": "active",
+      "components": ["Button", "InputField"],
+      "local_path": "/workspace/projects/multi-platform-apps/harmonyos-login-app"
+    },
+    {
+      "name": "h5-login-app",
+      "url": "https://github.com/xll-gif/h5-login-app.git",
+      "clone_url": "https://github.com/xll-gif/h5-login-app.git",
+      "platform": "H5",
+      "language": "TypeScript",
+      "framework": "React 18",
+      "build_tool": "Vite",
+      "architecture": "MVC",
+      "status": "active",
+      "components": ["Button", "InputField"],
+      "local_path": "/workspace/projects/multi-platform-apps/h5-login-app"
+    },
+    {
+      "name": "miniprogram-login-app",
+      "url": "https://github.com/xll-gif/miniprogram-login-app.git",
+      "clone_url": "https://github.com/xll-gif/miniprogram-login-app.git",
+      "platform": "Miniprogram",
+      "language": "JavaScript",
+      "framework": "WeChat Native",
+      "min_version": "2.20.0",
+      "architecture": "MVP",
+      "status": "active",
+      "components": ["Button", "InputField"],
+      "local_path": "/workspace/projects/multi-platform-apps/miniprogram-login-app"
+    }
+  ],
+  "component_mapping": {
+    "common_button": {
+      "ios": "SwiftUI.Button",
+      "android": "Compose.Button",
+      "harmonyos": "ArkUI.Button",
+      "h5": "React.Button",
+      "miniprogram": "Native.button"
+    },
+    "common_input": {
+      "ios": "SwiftUI.TextField",
+      "android": "Compose.OutlinedTextField",
+      "harmonyos": "ArkUI.TextInput",
+      "h5": "React.input",
+      "miniprogram": "Native.input"
+    },
+    "common_image": {
+      "ios": "SwiftUI.Image",
+      "android": "Compose.AsyncImage",
+      "harmonyos": "ArkUI.Image",
+      "h5": "React.img",
+      "miniprogram": "Native.image"
+    }
+  },
+  "metadata": {
+    "created_at": "2026-02-27",
+    "created_by": "workflow-automation",
+    "description": "多端自动化工作流仓库配置",
+    "version": "1.0.0",
+    "total_platforms": 5,
+    "total_components": 2
+  }
+}
