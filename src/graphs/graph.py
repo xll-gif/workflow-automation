@@ -12,6 +12,10 @@ from graphs.nodes.design_parse_node import design_parse_node
 from graphs.nodes.mastergo_asset_upload_node import mastergo_asset_upload_node
 from graphs.nodes.component_identify_node import component_identify_node
 from graphs.nodes.h5_code_generation_node import h5_code_generation_node
+from graphs.nodes.ios_code_generation_node import ios_code_generation_node
+from graphs.nodes.android_code_generation_node import android_code_generation_node
+from graphs.nodes.harmonyos_code_generation_node import harmonyos_code_generation_node
+from graphs.nodes.miniprogram_code_generation_node import miniprogram_code_generation_node
 
 # 创建状态图，指定图的入参和出参
 builder = StateGraph(GlobalState, input_schema=GraphInput, output_schema=GraphOutput)
@@ -24,7 +28,13 @@ builder.add_node("code_gen_and_push", code_gen_and_push_node)
 builder.add_node("design_parse", design_parse_node)
 builder.add_node("mastergo_asset_upload", mastergo_asset_upload_node)
 builder.add_node("component_identify", component_identify_node, metadata={"type": "agent", "llm_cfg": "config/component_identify_cfg.json"})
+
+# 添加五端代码生成节点（并行执行）
 builder.add_node("h5_code_generation", h5_code_generation_node, metadata={"type": "agent", "llm_cfg": "config/h5_code_generation_cfg.json"})
+builder.add_node("ios_code_generation", ios_code_generation_node, metadata={"type": "agent", "llm_cfg": "config/ios_code_generation_cfg.json"})
+builder.add_node("android_code_generation", android_code_generation_node, metadata={"type": "agent", "llm_cfg": "config/android_code_generation_cfg.json"})
+builder.add_node("harmonyos_code_generation", harmonyos_code_generation_node, metadata={"type": "agent", "llm_cfg": "config/harmonyos_code_generation_cfg.json"})
+builder.add_node("miniprogram_code_generation", miniprogram_code_generation_node, metadata={"type": "agent", "llm_cfg": "config/miniprogram_code_generation_cfg.json"})
 
 # 设置入口点
 builder.set_entry_point("requirement_analysis")
@@ -38,11 +48,15 @@ builder.add_edge("design_parse", "mastergo_asset_upload")
 # 添加边：从 mastergo_asset_upload 到 component_identify
 builder.add_edge("mastergo_asset_upload", "component_identify")
 
-# 添加边：从 component_identify 到 h5_code_generation
+# 添加边：从 component_identify 到五端代码生成节点（并行执行）
 builder.add_edge("component_identify", "h5_code_generation")
+builder.add_edge("component_identify", "ios_code_generation")
+builder.add_edge("component_identify", "android_code_generation")
+builder.add_edge("component_identify", "harmonyos_code_generation")
+builder.add_edge("component_identify", "miniprogram_code_generation")
 
-# 添加边：从 h5_code_generation 到 END
-builder.add_edge("h5_code_generation", END)
+# 添加边：从五端代码生成节点到 END（所有并行分支完成后结束）
+builder.add_edge(["h5_code_generation", "ios_code_generation", "android_code_generation", "harmonyos_code_generation", "miniprogram_code_generation"], END)
 
 # 编译图
 main_graph = builder.compile()
@@ -75,6 +89,21 @@ if __name__ == "__main__":
         print(f"静态资源数量: {len(result.get('static_assets', []))}")
         print(f"\n需求摘要:\n{result.get('summary', '')}")
         print(f"\n设计稿摘要:\n{result.get('mastergo_summary', '')}")
+        
+        print("\n" + "="*80)
+        print("五端代码生成结果:")
+        print("="*80)
+        print(f"H5 生成文件数: {len(result.get('h5_generated_files', []))}")
+        print(f"iOS 生成文件数: {len(result.get('ios_generated_files', []))}")
+        print(f"Android 生成文件数: {len(result.get('android_generated_files', []))}")
+        print(f"鸿蒙生成文件数: {len(result.get('harmonyos_generated_files', []))}")
+        print(f"小程序生成文件数: {len(result.get('miniprogram_generated_files', []))}")
+        
+        print(f"\nH5 摘要: {result.get('h5_generation_summary', 'N/A')}")
+        print(f"iOS 摘要: {result.get('ios_generation_summary', 'N/A')}")
+        print(f"Android 摘要: {result.get('android_generation_summary', 'N/A')}")
+        print(f"鸿蒙摘要: {result.get('harmonyos_generation_summary', 'N/A')}")
+        print(f"小程序摘要: {result.get('miniprogram_generation_summary', 'N/A')}")
         print("="*80)
 
     except Exception as e:

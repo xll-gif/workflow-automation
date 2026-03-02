@@ -33,6 +33,30 @@ class GlobalState(BaseModel):
     # H5 代码生成结果
     h5_generated_files: List[Dict[str, str]] = Field(default=[], description="H5 生成的文件列表")
     h5_generation_summary: str = Field(default="", description="H5 代码生成摘要")
+    ios_generated_files: List[Dict[str, str]] = Field(default=[], description="iOS 生成的文件列表")
+    ios_generation_summary: str = Field(default="", description="iOS 代码生成摘要")
+    android_generated_files: List[Dict[str, str]] = Field(default=[], description="Android 生成的文件列表")
+    android_generation_summary: str = Field(default="", description="Android 代码生成摘要")
+    harmonyos_generated_files: List[Dict[str, str]] = Field(default=[], description="鸿蒙生成的文件列表")
+    harmonyos_generation_summary: str = Field(default="", description="鸿蒙代码生成摘要")
+    miniprogram_generated_files: List[Dict[str, str]] = Field(default=[], description="小程序生成的文件列表")
+    miniprogram_generation_summary: str = Field(default="", description="小程序代码生成摘要")
+
+    # iOS 代码生成结果
+    ios_generated_files: List[Dict[str, str]] = Field(default=[], description="iOS 生成的文件列表")
+    ios_generation_summary: str = Field(default="", description="iOS 代码生成摘要")
+
+    # Android 代码生成结果
+    android_generated_files: List[Dict[str, str]] = Field(default=[], description="Android 生成的文件列表")
+    android_generation_summary: str = Field(default="", description="Android 代码生成摘要")
+
+    # 鸿蒙代码生成结果
+    harmonyos_generated_files: List[Dict[str, str]] = Field(default=[], description="鸿蒙生成的文件列表")
+    harmonyos_generation_summary: str = Field(default="", description="鸿蒙代码生成摘要")
+
+    # 小程序代码生成结果
+    miniprogram_generated_files: List[Dict[str, str]] = Field(default=[], description="小程序生成的文件列表")
+    miniprogram_generation_summary: str = Field(default="", description="小程序代码生成摘要")
 
 # ==================== 图输入输出 ====================
 class GraphInput(BaseModel):
@@ -59,6 +83,14 @@ class GraphOutput(BaseModel):
     suggestions: List[str] = Field(default=[], description="设计建议")
     h5_generated_files: List[Dict[str, str]] = Field(default=[], description="H5 生成的文件列表")
     h5_generation_summary: str = Field(default="", description="H5 代码生成摘要")
+    ios_generated_files: List[Dict[str, str]] = Field(default=[], description="iOS 生成的文件列表")
+    ios_generation_summary: str = Field(default="", description="iOS 代码生成摘要")
+    android_generated_files: List[Dict[str, str]] = Field(default=[], description="Android 生成的文件列表")
+    android_generation_summary: str = Field(default="", description="Android 代码生成摘要")
+    harmonyos_generated_files: List[Dict[str, str]] = Field(default=[], description="鸿蒙生成的文件列表")
+    harmonyos_generation_summary: str = Field(default="", description="鸿蒙代码生成摘要")
+    miniprogram_generated_files: List[Dict[str, str]] = Field(default=[], description="小程序生成的文件列表")
+    miniprogram_generation_summary: str = Field(default="", description="小程序代码生成摘要")
 
 # ==================== 节点输入输出 ====================
 class HelloWorldInput(BaseModel):
@@ -246,3 +278,61 @@ class H5CodeGenerationOutput(BaseModel):
     tech_stack: str = Field(default="React 18 + TypeScript + Vite", description="使用的技术栈")
 
 
+
+
+# ==================== 五端代码生成节点定义 ====================
+
+class IOSCodeGenerationInput(BaseModel):
+    """iOS 代码生成节点输入"""
+    identified_components: List[Dict[str, Any]] = Field(..., description="识别后的组件列表")
+    component_hierarchy: Dict[str, Any] = Field(default={}, description="组件层次结构")
+    api_definitions: List[Dict[str, Any]] = Field(default=[], description="API 定义列表")
+    static_assets: List[Dict[str, Any]] = Field(default=[], description="静态资源列表")
+    feature_list: List[str] = Field(default=[], description="功能列表")
+
+class IOSCodeGenerationOutput(BaseModel):
+    """iOS 代码生成节点输出"""
+    ios_generated_files: List[Dict[str, str]] = Field(..., description="iOS 生成的文件列表")
+    ios_generation_summary: str = Field(..., description="iOS 代码生成摘要")
+
+
+class AndroidCodeGenerationInput(BaseModel):
+    """Android 代码生成节点输入"""
+    identified_components: List[Dict[str, Any]] = Field(..., description="识别后的组件列表")
+    component_hierarchy: Dict[str, Any] = Field(default={}, description="组件层次结构")
+    api_definitions: List[Dict[str, Any]] = Field(default=[], description="API 定义列表")
+    static_assets: List[Dict[str, Any]] = Field(default=[], description="静态资源列表")
+    feature_list: List[str] = Field(default=[], description="功能列表")
+
+class AndroidCodeGenerationOutput(BaseModel):
+    """Android 代码生成节点输出"""
+    android_generated_files: List[Dict[str, str]] = Field(..., description="Android 生成的文件列表")
+    android_generation_summary: str = Field(..., description="Android 代码生成摘要")
+
+
+class HarmonyOSCodeGenerationInput(BaseModel):
+    """鸿蒙代码生成节点输入"""
+    identified_components: List[Dict[str, Any]] = Field(..., description="识别后的组件列表")
+    component_hierarchy: Dict[str, Any] = Field(default={}, description="组件层次结构")
+    api_definitions: List[Dict[str, Any]] = Field(default=[], description="API 定义列表")
+    static_assets: List[Dict[str, Any]] = Field(default=[], description="静态资源列表")
+    feature_list: List[str] = Field(default=[], description="功能列表")
+
+class HarmonyOSCodeGenerationOutput(BaseModel):
+    """鸿蒙代码生成节点输出"""
+    harmonyos_generated_files: List[Dict[str, str]] = Field(..., description="鸿蒙生成的文件列表")
+    harmonyos_generation_summary: str = Field(..., description="鸿蒙代码生成摘要")
+
+
+class MiniprogramCodeGenerationInput(BaseModel):
+    """小程序代码生成节点输入"""
+    identified_components: List[Dict[str, Any]] = Field(..., description="识别后的组件列表")
+    component_hierarchy: Dict[str, Any] = Field(default={}, description="组件层次结构")
+    api_definitions: List[Dict[str, Any]] = Field(default=[], description="API 定义列表")
+    static_assets: List[Dict[str, Any]] = Field(default=[], description="静态资源列表")
+    feature_list: List[str] = Field(default=[], description="功能列表")
+
+class MiniprogramCodeGenerationOutput(BaseModel):
+    """小程序代码生成节点输出"""
+    miniprogram_generated_files: List[Dict[str, str]] = Field(..., description="小程序生成的文件列表")
+    miniprogram_generation_summary: str = Field(..., description="小程序代码生成摘要")
