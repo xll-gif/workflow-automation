@@ -16,6 +16,7 @@ from graphs.nodes.ios_code_generation_node import ios_code_generation_node
 from graphs.nodes.android_code_generation_node import android_code_generation_node
 from graphs.nodes.harmonyos_code_generation_node import harmonyos_code_generation_node
 from graphs.nodes.miniprogram_code_generation_node import miniprogram_code_generation_node
+from graphs.nodes.fetch_generated_code_node import fetch_generated_code_node
 
 # 创建状态图，指定图的入参和出参
 builder = StateGraph(GlobalState, input_schema=GraphInput, output_schema=GraphOutput)
@@ -36,7 +37,7 @@ builder.add_node("android_code_generation", android_code_generation_node, metada
 builder.add_node("harmonyos_code_generation", harmonyos_code_generation_node, metadata={"type": "agent", "llm_cfg": "config/harmonyos_code_generation_cfg.json"})
 builder.add_node("miniprogram_code_generation", miniprogram_code_generation_node, metadata={"type": "agent", "llm_cfg": "config/miniprogram_code_generation_cfg.json"})
 
-# 设置入口点
+# 设置入口点 - 从需求分析开始
 builder.set_entry_point("requirement_analysis")
 
 # 添加边：从 requirement_analysis 到 design_parse
@@ -55,8 +56,14 @@ builder.add_edge("component_identify", "android_code_generation")
 builder.add_edge("component_identify", "harmonyos_code_generation")
 builder.add_edge("component_identify", "miniprogram_code_generation")
 
-# 添加边：从五端代码生成节点到 END（所有并行分支完成后结束）
-builder.add_edge(["h5_code_generation", "ios_code_generation", "android_code_generation", "harmonyos_code_generation", "miniprogram_code_generation"], END)
+# 添加边：从五端代码生成节点到 fetch_generated_code（所有并行分支完成后）
+builder.add_edge(["h5_code_generation", "ios_code_generation", "android_code_generation", "harmonyos_code_generation", "miniprogram_code_generation"], "fetch_generated_code")
+
+# 添加边：从 fetch_generated_code 到 code_gen_and_push
+builder.add_edge("fetch_generated_code", "code_gen_and_push")
+
+# 添加边：从 code_gen_and_push 到 END
+builder.add_edge("code_gen_and_push", END)
 
 # 编译图
 main_graph = builder.compile()

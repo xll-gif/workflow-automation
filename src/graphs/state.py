@@ -336,3 +336,70 @@ class MiniprogramCodeGenerationOutput(BaseModel):
     """小程序代码生成节点输出"""
     miniprogram_generated_files: List[Dict[str, str]] = Field(..., description="小程序生成的文件列表")
     miniprogram_generation_summary: str = Field(..., description="小程序代码生成摘要")
+
+
+# ==================== 代码获取与推送节点定义 ====================
+
+class FetchGeneratedCodeInput(BaseModel):
+    """代码获取节点输入"""
+    h5_generated_files: List[Dict[str, str]] = Field(default=[], description="H5 生成的文件列表")
+    ios_generated_files: List[Dict[str, str]] = Field(default=[], description="iOS 生成的文件列表")
+    android_generated_files: List[Dict[str, str]] = Field(default=[], description="Android 生成的文件列表")
+    harmonyos_generated_files: List[Dict[str, str]] = Field(default=[], description="鸿蒙生成的文件列表")
+    miniprogram_generated_files: List[Dict[str, str]] = Field(default=[], description="小程序生成的文件列表")
+
+class FetchGeneratedCodeOutput(BaseModel):
+    """代码获取节点输出"""
+    all_generated_files: List[Dict[str, Any]] = Field(..., description="所有生成的文件列表")
+    platform_files: Dict[str, List[Dict[str, str]]] = Field(..., description="按平台分组的文件列表")
+    summary: str = Field(..., description="代码收集摘要")
+
+
+class CodeGenAndPushInput(BaseModel):
+    """代码生成与推送节点输入"""
+    repo_owner: str = Field(..., description="GitHub 仓库所有者")
+    repo_name: str = Field(..., description="GitHub 仓库名称")
+    repo_dir: str = Field(..., description="仓库本地路径")
+    base_branch: str = Field(default="main", description="基础分支名")
+    feature_branch: str = Field(..., description="特性分支名")
+    github_token: str = Field(..., description="GitHub Token（必须）")
+    
+    # 代码生成配置
+    files_to_generate: List[Dict[str, str]] = Field(
+        default=[],
+        description="要生成的文件列表，每个包含 path 和 content"
+    )
+    commit_message: str = Field(..., description="提交消息")
+    
+    # PR 配置
+    create_pr: bool = Field(default=False, description="是否创建 Pull Request")
+    pr_title: str = Field(default="", description="PR 标题")
+    pr_body: str = Field(default="", description="PR 描述")
+
+
+class CodeGenAndPushOutput(BaseModel):
+    """代码生成与推送节点输出"""
+    success: bool = Field(..., description="是否成功")
+    branch_created: bool = Field(default=False, description="分支是否创建成功")
+    files_generated: List[str] = Field(default=[], description="已生成的文件列表")
+    commit_created: bool = Field(default=False, description="提交是否创建成功")
+    push_successful: bool = Field(default=False, description="推送是否成功")
+    pr_url: str = Field(default="", description="Pull Request URL")
+    error_message: str = Field(default="", description="错误信息")
+
+
+class AnalyzeCodebaseInput(BaseModel):
+    """代码库分析节点输入"""
+    repo_owner: str = Field(..., description="GitHub 仓库所有者")
+    repo_name: str = Field(..., description="GitHub 仓库名称")
+    repo_branch: Optional[str] = Field(default="main", description="分支名（可选）")
+    github_token: Optional[str] = Field(default=None, description="GitHub Token（可选）")
+    analyze_depth: int = Field(default=1, description="分析深度：0=仅根目录，1=一级子目录，2=二级子目录")
+
+
+class AnalyzeCodebaseOutput(BaseModel):
+    """代码库分析节点输出"""
+    repo_info: Dict[str, Any] = Field(..., description="仓库基本信息")
+    project_structure: List[Dict[str, Any]] = Field(default=[], description="项目结构")
+    tech_stack: Dict[str, Any] = Field(default={}, description="技术栈信息")
+    key_files: List[str] = Field(default=[], description="关键文件路径")
