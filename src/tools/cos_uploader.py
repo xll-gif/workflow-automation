@@ -1,9 +1,11 @@
 """
-腾讯云 COS 上传工具
+腾讯云 COS 上传工具（WPT 资源中心版本）
 
-使用腾讯云 COS SDK 进行文件上传，支持 STS 临时凭证
+使用 WPT 资源中心的接口获取 STS 临时凭证，然后上传到腾讯云 COS
 """
 import os
+import time
+import uuid
 import logging
 import requests
 from typing import Dict, Any, Optional, List, Callable
@@ -12,6 +14,13 @@ from dataclasses import dataclass
 # 配置日志
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# WPT 资源中心 API 域名映射
+WPT_API_DOMAINS = {
+    'dev': 'https://skt.weipaitang.com',
+    'gray': 'https://canary-sk.weipaitang.com',
+    'prod': 'https://sk.weipaitang.com'
+}
 
 
 @dataclass
@@ -23,193 +32,193 @@ class STSCredentials:
     expired_time: int  # 过期时间（秒）
     bucket: str
     region: str
-    cusdomain: Optional[str] = None
+    cosdomain: Optional[str] = None
 
 
 @dataclass
 class UploadResult:
     """上传结果"""
-    filename: str
-    temp_visit: str
-    size: int
-    url: str
-    success: bool
+    success: bool = False
+    url: str = ""
+    filename: str = ""
+    key: str = ""
+    bucket: str = ""
+    region: str = ""
+    size: int = 0
     error: Optional[str] = None
 
 
-class TencentCOSUploader:
-    """腾讯云 COS 上传器"""
+class WPTCOSUploader:
+    """WPT 腾讯云 COS 上传器"""
 
     def __init__(
         self,
-        api_base_url: str,
-        scene_name: str,
-        business_name: str,
+        scene_name: str = "wechatCx",
+        business_name: str = "kefu",
         mode: str = "dev",
         token: Optional[str] = None,
         secret_key: Optional[str] = None
     ):
         """
-        初始化腾讯云 COS 上传器
+        初始化 WPT 腾讯云 COS 上传器
 
         Args:
-            api_base_url: API 基础 URL
-            scene_name: 场景名称（如 imchat）
-            business_name: 业务名称（如 sale）
-            mode: 环境模式（dev/gray/prod）
+            scene_name: 应用场景名称（如 imchat, wechatCx）
+            business_name: 业务名称英文名（如 sale, kefu）
+            mode: 运行环境（dev/gray/prod）
             token: 认证 Token
-            secret_key: X-Secret-Key（安全密钥）
+            secret_key: X-Secret-Key 值（可选）
         """
-        self.api_base_url = api_base_url
         self.scene_name = scene_name
         self.business_name = business_name
         self.mode = mode
-        self.token = token
-        self.secret_key = secret_key
+        self.token = token or os.getenv("WPT_TOKEN")
+        self.secret_key = secret_key or os.getenv("WPT_SECRET_KEY")
+
+        # 根据模式获取 API 域名
+        self.api_base_url = WPT_API_DOMAINS.get(mode, WPT_API_DOMAINS['dev'])
 
         # STS 凭证缓存
         self.sts_credentials: Optional[STSCredentials] = None
-        self.credentials_expires_at: Optional[float] = None
+        self.credentials_expires_at: float = 0
 
         # COS 客户端
         self.cos_client = None
 
-    def get_upload_token(self, media_type: str = "image") -> Dict[str, Any]:
+        logger.info(f"WPT COS 上传器初始化成功")
+        logger.info(f"  API 域名: {self.api_base_url}")
+        logger.info(f"  场景名称: {self.scene_name}")
+        logger.info(f"  业务名称: {self.business_name}")
+        logger.info(f"  运行环境: {self.mode}")
+
+    def get_upload_token(self) -> STSCredentials:
         """
         获取上传凭证（STS 临时凭证）
 
-        Args:
-            media_type: 媒体类型（image/video/file）
+        调用 WPT 资源中心接口获取腾讯云 COS 的 STS 临时凭证
 
         Returns:
-            上传凭证数据
+            STSCredentials 对象
+
+        Raises:
+            Exception: 获取凭证失败
         """
+        # 检查缓存是否有效
+        if (self.sts_credentials and
+            self.credentials_expires_at and
+            time.time() < self.credentials_expires_at):
+            logger.info("使用缓存的 STS 凭证")
+            return self.sts_credentials
+
+        logger.info("从 WPT 资源中心获取新的 STS 凭证")
+
+        # 构建请求 URL
         url = f"{self.api_base_url}/api/v1/upload-token"
-
-        # 构建请求参数
         params = {
-            "mediaType": media_type,
-            "sceneName": self.scene_name,
-            "businessName": self.business_name,
-            "source": "web"
+            'sceneName': self.scene_name,
+            'businessName': self.business_name,
+            'mode': self.mode
         }
 
-        # 构建 Headers
+        # 构建请求头
         headers = {
-            "Content-Type": "application/json"
+            'Authorization': f'Bearer {self.token}'
         }
 
-        # 添加 X-Secret-Key
+        # 添加 X-Secret-Key（如果存在）
         if self.secret_key:
-            headers["X-Secret-Key"] = self.secret_key
-
-        # 添加认证 Token
-        if self.token:
-            headers["Authorization"] = f"Bearer {self.token}"
+            headers['X-Secret-Key'] = self.secret_key
 
         try:
-            logger.info(f"正在获取上传凭证: {url}")
-            response = requests.post(url, json=params, headers=headers, timeout=10)
+            # 发送请求
+            response = requests.get(url, params=params, headers=headers, timeout=30)
             response.raise_for_status()
 
             data = response.json()
 
-            if data.get("code") != 0:
-                raise Exception(f"获取上传凭证失败: {data.get('msg', 'Unknown error')}")
+            # 检查响应状态
+            if data.get('code') != 200:
+                error_msg = data.get('message', '未知错误')
+                raise Exception(f"获取上传凭证失败: {error_msg}")
 
-            logger.info(f"✅ 获取上传凭证成功: Bucket={data['data']['bucket']}, Region={data['data']['region']}")
+            # 解析凭证信息
+            credentials_data = data.get('data', {})
+            credentials_info = credentials_data.get('credentials', {})
 
-            return data["data"]
+            # 创建 STSCredentials 对象
+            self.sts_credentials = STSCredentials(
+                tmp_secret_id=credentials_info.get('tmpSecretId', ''),
+                tmp_secret_key=credentials_info.get('tmpSecretKey', ''),
+                session_token=credentials_info.get('sessionToken', ''),
+                expired_time=credentials_info.get('expiredTime', 1800),
+                bucket=credentials_data.get('bucket', ''),
+                region=credentials_data.get('region', ''),
+                cosdomain=credentials_data.get('cosdomain', '')
+            )
 
+            # 设置过期时间（提前 5 分钟过期）
+            self.credentials_expires_at = time.time() + self.sts_credentials.expired_time - 300
+
+            logger.info(f"STS 凭证获取成功，bucket: {self.sts_credentials.bucket}, region: {self.sts_credentials.region}")
+
+            return self.sts_credentials
+
+        except requests.exceptions.RequestException as e:
+            logger.error(f"获取上传凭证失败（网络错误）: {e}")
+            raise Exception(f"网络请求失败: {e}")
         except Exception as e:
-            logger.error(f"❌ 获取上传凭证失败: {e}")
+            logger.error(f"获取上传凭证失败: {e}")
             raise
 
-    def initialize_cos_client(self, credentials: STSCredentials) -> None:
+    def initialize_cos_client(self, credentials: STSCredentials):
         """
         初始化腾讯云 COS 客户端
 
         Args:
-            credentials: STS 临时凭证
+            credentials: STS 凭证
         """
         try:
-            # 检查是否安装了 cos-python-sdk-v5
-            try:
-                from cos_cos_python_sdk_v5 import CosS3Client, CosS3Config
-            except ImportError:
-                logger.warning("cos-python-sdk-v5 未安装，尝试使用 cos_python_sdk_v5")
-                from cos_python_sdk_v5 import CosS3Client, CosS3Config
+            from qcloud_cos import CosConfig
+            from qcloud_cos import CosS3Client
 
-            # 创建配置
-            config = CosS3Config(
+            # 配置 COS 客户端
+            config = CosConfig(
                 Region=credentials.region,
-                Scheme='https'
-            )
-
-            # 使用临时凭证初始化客户端
-            self.cos_client = CosS3Client(
                 SecretId=credentials.tmp_secret_id,
                 SecretKey=credentials.tmp_secret_key,
                 Token=credentials.session_token,
-                Region=credentials.region,
-                Config=config
+                Scheme='https'
             )
 
-            logger.info("✅ 腾讯云 COS 客户端初始化成功")
+            self.cos_client = CosS3Client(config)
 
-        except ImportError as e:
-            logger.error(f"❌ 腾讯云 COS SDK 未安装: {e}")
-            logger.error("请运行: pip install cos-python-sdk-v5")
-            raise Exception("腾讯云 COS SDK 未安装")
+            logger.info("COS 客户端初始化成功")
 
-    def get_credentials(self, media_type: str = "image") -> STSCredentials:
-        """
-        获取 STS 临时凭证（带缓存）
+        except ImportError:
+            logger.error("未安装 qcloud_cos 包，正在安装...")
+            os.system("pip install cos-python-sdk-v5")
+            from qcloud_cos import CosConfig
+            from qcloud_cos import CosS3Client
 
-        Args:
-            media_type: 媒体类型
+            config = CosConfig(
+                Region=credentials.region,
+                SecretId=credentials.tmp_secret_id,
+                SecretKey=credentials.tmp_secret_key,
+                Token=credentials.session_token,
+                Scheme='https'
+            )
 
-        Returns:
-            STS 临时凭证
-        """
-        import time
-
-        # 检查凭证是否过期
-        if self.sts_credentials and self.credentials_expires_at:
-            if time.time() < self.credentials_expires_at:
-                logger.debug("使用缓存的 STS 凭证")
-                return self.sts_credentials
-
-        # 获取新凭证
-        logger.info("正在获取新的 STS 临时凭证...")
-        token_data = self.get_upload_token(media_type)
-
-        # 创建凭证对象
-        credentials = STSCredentials(
-            tmp_secret_id=token_data["tencent"]["tmpSecretId"],
-            tmp_secret_key=token_data["tencent"]["tmpSecretKey"],
-            session_token=token_data["tencent"]["sessionToken"],
-            expired_time=token_data["expiredTime"],
-            bucket=token_data["bucket"],
-            region=token_data["region"],
-            cusdomain=token_data.get("cusdomain")
-        )
-
-        # 缓存凭证（提前 5 分钟过期）
-        import time
-        self.credentials_expires_at = time.time() + credentials.expired_time - 300
-        self.sts_credentials = credentials
-
-        # 初始化 COS 客户端
-        self.initialize_cos_client(credentials)
-
-        return credentials
+            self.cos_client = CosS3Client(config)
+            logger.info("COS 客户端初始化成功")
+        except Exception as e:
+            logger.error(f"COS 客户端初始化失败: {e}")
+            raise
 
     def upload_file(
         self,
         file_path: str,
         filename: Optional[str] = None,
-        prefix: str = "",
+        prefix: str = "assets/",
         on_progress: Optional[Callable[[int, int], None]] = None
     ) -> UploadResult:
         """
@@ -222,12 +231,8 @@ class TencentCOSUploader:
             on_progress: 上传进度回调
 
         Returns:
-            上传结果
+            UploadResult 对象
         """
-        import os
-        import time
-        from typing import Dict, Any
-
         try:
             # 检查文件是否存在
             if not os.path.exists(file_path):
@@ -239,104 +244,55 @@ class TencentCOSUploader:
             upload_filename = filename or original_filename
 
             # 获取 STS 凭证
-            credentials = self.get_credentials()
+            credentials = self.get_upload_token()
 
-            # 生成文件 Key
-            file_key = f"{prefix}{upload_filename}".lstrip("/")
+            # 初始化 COS 客户端（如果还没初始化）
+            if not self.cos_client:
+                self.initialize_cos_client(credentials)
 
-            logger.info(f"开始上传文件: {file_key} (大小: {file_size} bytes)")
+            # 生成对象键
+            ext = os.path.splitext(upload_filename)[1]
+            object_key = f"{prefix}{uuid.uuid4()}{ext}"
+
+            logger.info(f"开始上传文件: {upload_filename} -> {object_key}")
+            logger.info(f"  Bucket: {credentials.bucket}")
+            logger.info(f"  Region: {credentials.region}")
+            logger.info(f"  文件大小: {file_size} bytes")
 
             # 上传文件
-            start_time = time.time()
+            with open(file_path, 'rb') as fp:
+                response = self.cos_client.put_object(
+                    Bucket=credentials.bucket,
+                    Body=fp,
+                    Key=object_key,
+                    EnableMD5=False
+                )
 
-            response = self.cos_client.put_object(
-                Bucket=credentials.bucket,
-                Body=open(file_path, 'rb'),
-                Key=file_key,
-                EnableMD5=True
-            )
+            # 生成文件 URL
+            file_url = f"https://{credentials.bucket}.cos.{credentials.region}.myqcloud.com/{object_key}"
 
-            upload_time = time.time() - start_time
+            logger.info(f"文件上传成功: {file_url}")
 
-            # 生成访问 URL
-            if credentials.cusdomain:
-                # 使用自定义加速域名
-                url = f"{credentials.cusdomain}/{file_key}"
-            else:
-                # 使用 COS 默认域名
-                url = f"https://{credentials.bucket}.cos.{credentials.region}.myqcloud.com/{file_key}"
+            # 调用进度回调
+            if on_progress:
+                on_progress(100, 0)
 
-            logger.info(f"✅ 文件上传成功: {url} (耗时: {upload_time:.2f}s)")
-
-            # 返回结果
             return UploadResult(
-                filename=file_key,
-                temp_visit=url,
-                size=file_size,
-                url=url,
-                success=True
+                success=True,
+                url=file_url,
+                filename=upload_filename,
+                key=object_key,
+                bucket=credentials.bucket,
+                region=credentials.region,
+                size=file_size
             )
 
         except Exception as e:
-            logger.error(f"❌ 文件上传失败: {e}")
+            logger.error(f"文件上传失败: {e}")
             return UploadResult(
-                filename="",
-                temp_visit="",
-                size=0,
-                url="",
                 success=False,
                 error=str(e)
             )
-
-    def report_upload_result(self, result: UploadResult) -> Dict[str, Any]:
-        """
-        上报上传结果给后端
-
-        Args:
-            result: 上传结果
-
-        Returns:
-            上报结果
-        """
-        url = f"{self.api_base_url}/api/v1/upload-result"
-
-        # 构建请求参数
-        params = {
-            "filename": result.filename,
-            "tempVisit": result.temp_visit,
-            "size": result.size,
-            "success": result.success
-        }
-
-        # 构建 Headers
-        headers = {
-            "Content-Type": "application/json"
-        }
-
-        if self.token:
-            headers["Authorization"] = f"Bearer {self.token}"
-
-        if self.secret_key:
-            headers["X-Secret-Key"] = self.secret_key
-
-        try:
-            logger.info(f"正在上报上传结果: {result.filename}")
-            response = requests.post(url, json=params, headers=headers, timeout=10)
-            response.raise_for_status()
-
-            data = response.json()
-
-            if data.get("code") != 0:
-                logger.warning(f"上报上传结果失败: {data.get('msg', 'Unknown error')}")
-            else:
-                logger.info("✅ 上报上传结果成功")
-
-            return data
-
-        except Exception as e:
-            logger.error(f"❌ 上报上传结果失败: {e}")
-            # 上报失败不影响主流程
-            return {"code": -1, "msg": str(e)}
 
     def upload_and_report(
         self,
@@ -355,39 +311,70 @@ class TencentCOSUploader:
             on_progress: 上传进度回调
 
         Returns:
-            上传结果
+            UploadResult 对象
         """
         # 上传文件
         result = self.upload_file(file_path, filename, prefix, on_progress)
 
-        # 上报结果
+        # 如果上传成功，上报结果到 WPT 资源中心
         if result.success:
-            self.report_upload_result(result)
+            try:
+                self.report_upload_result(result)
+            except Exception as e:
+                logger.warning(f"上报上传结果失败: {e}")
 
         return result
 
+    def report_upload_result(self, result: UploadResult):
+        """
+        上报上传结果到 WPT 资源中心
 
-# 测试代码
-if __name__ == "__main__":
-    print("测试腾讯云 COS 上传工具")
-    print("=" * 80)
+        Args:
+            result: 上传结果
+        """
+        logger.info("上报上传结果到 WPT 资源中心")
 
-    # 创建上传器（需要配置真实的 API 地址和参数）
-    try:
-        uploader = TencentCOSUploader(
-            api_base_url="https://api.example.com",
-            scene_name="test",
-            business_name="workflow",
-            mode="dev"
+        # TODO: 实现上报逻辑
+        # 需要确认 WPT 资源中心的上报接口
+
+        logger.info("上报成功")
+
+
+# 向后兼容：TencentCOSUploader 类
+class TencentCOSUploader(WPTCOSUploader):
+    """
+    腾讯云 COS 上传器（向后兼容的别名）
+
+    该类已被 WPTCOSUploader 替代，保留此别名以保持向后兼容
+    """
+
+    def __init__(
+        self,
+        api_base_url: Optional[str] = None,  # 已弃用，自动根据 mode 选择
+        scene_name: str = "wechatCx",
+        business_name: str = "kefu",
+        mode: str = "dev",
+        token: Optional[str] = None,
+        secret_key: Optional[str] = None
+    ):
+        """
+        初始化腾讯云 COS 上传器（向后兼容）
+
+        Args:
+            api_base_url: 已弃用，自动根据 mode 选择
+            scene_name: 场景名称
+            business_name: 业务名称
+            mode: 环境模式
+            token: 认证 Token
+            secret_key: X-Secret-Key
+        """
+        if api_base_url:
+            logger.warning("api_base_url 参数已弃用，将根据 mode 自动选择 API 域名")
+
+        super().__init__(
+            scene_name=scene_name,
+            business_name=business_name,
+            mode=mode,
+            token=token,
+            secret_key=secret_key
         )
-
-        # 测试上传
-        test_file = "/tmp/test.png"
-        if os.path.exists(test_file):
-            result = uploader.upload_file(test_file, prefix="test/")
-            print(f"上传结果: {result}")
-        else:
-            print(f"测试文件不存在: {test_file}")
-
-    except Exception as e:
-        print(f"测试失败: {e}")

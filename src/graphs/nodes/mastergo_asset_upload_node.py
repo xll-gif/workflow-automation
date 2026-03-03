@@ -30,7 +30,7 @@ from graphs.state import (
 from tools.mastergo_mcp_client import create_mastergo_client
 
 # 导入腾讯云 COS 上传工具
-from tools.cos_uploader import TencentCOSUploader
+from tools.cos_uploader import WPTCOSUploader, TencentCOSUploader
 
 
 def mastergo_asset_upload_node(
@@ -57,28 +57,27 @@ def mastergo_asset_upload_node(
     cos_uploader = None
     if storage_backend == "cos":
         try:
-            api_base_url = os.getenv("TENCENT_API_BASE_URL", "")
-            scene_name = os.getenv("TENCENT_SCENE_NAME", "frontend-automation")
-            business_name = os.getenv("TENCENT_BUSINESS_NAME", "workflow")
-            mode = os.getenv("TENCENT_MODE", "dev")
-            token = os.getenv("TENCENT_TOKEN", "")
-            secret_key = os.getenv("TENCENT_SECRET_KEY", "")
+            # 优先使用 WPT 环境变量
+            scene_name = os.getenv("WPT_SCENE_NAME") or os.getenv("TENCENT_SCENE_NAME", "wechatCx")
+            business_name = os.getenv("WPT_BUSINESS_NAME") or os.getenv("TENCENT_BUSINESS_NAME", "kefu")
+            mode = os.getenv("WPT_MODE") or os.getenv("TENCENT_MODE", "dev")
+            token = os.getenv("WPT_TOKEN") or os.getenv("TENCENT_TOKEN", "")
+            secret_key = os.getenv("WPT_SECRET_KEY") or os.getenv("TENCENT_SECRET_KEY", "")
 
-            if not api_base_url:
-                logger.warning("TENCENT_API_BASE_URL 未配置，将使用 Mock 模式")
+            if not token:
+                logger.warning("WPT_TOKEN 未配置，将使用 Mock 模式")
                 storage_backend = "mock"
             else:
-                cos_uploader = TencentCOSUploader(
-                    api_base_url=api_base_url,
+                cos_uploader = WPTCOSUploader(
                     scene_name=scene_name,
                     business_name=business_name,
                     mode=mode,
                     token=token,
                     secret_key=secret_key
                 )
-                logger.info(f"✅ 腾讯云 COS 上传器初始化成功")
+                logger.info(f"✅ WPT 腾讯云 COS 上传器初始化成功")
         except Exception as e:
-            logger.warning(f"腾讯云 COS 上传器初始化失败: {e}，将使用阿里云 OSS")
+            logger.warning(f"WPT 腾讯云 COS 上传器初始化失败: {e}，将使用阿里云 OSS")
             storage_backend = "oss"
 
     # 创建 MCP 客户端
