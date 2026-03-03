@@ -467,6 +467,20 @@ class PullRemoteCodeInput(BaseModel):
     github_token: Optional[str] = Field(default=None, description="GitHub Token（可选）")
 
 
+# ==================== 项目规则数据结构（v4.0 新增）====================
+
+class ProjectRules(BaseModel):
+    """项目规则数据结构"""
+    project_structure: Dict[str, Any] = Field(default={}, description="项目结构（目录、文件组织、模块划分）")
+    coding_standards: Dict[str, Any] = Field(default={}, description="代码规范（命名、风格、注释）")
+    component_usage: Dict[str, Any] = Field(default={}, description="组件使用（组件库、自定义组件、引用方式）")
+    api_integration: Dict[str, Any] = Field(default={}, description="API 集成（调用方式、错误处理、数据模型）")
+    styling: Dict[str, Any] = Field(default={}, description="样式规范（样式方案、命名、主题）")
+    testing: Dict[str, Any] = Field(default={}, description="测试规范（测试框架、文件组织、覆盖率）")
+    dependencies: Dict[str, Any] = Field(default={}, description="依赖管理（包管理器、常用依赖、版本规范）")
+    build_config: Dict[str, Any] = Field(default={}, description="构建配置（构建工具、环境变量、打包配置）")
+
+
 class PullRemoteCodeOutput(BaseModel):
     """拉取远程代码节点输出"""
     success: bool = Field(..., description="是否成功")
@@ -484,7 +498,12 @@ class AnalyzeProjectRulesInput(BaseModel):
     """项目规则解析节点输入"""
     platform: str = Field(..., description="目标平台（h5/ios/android/harmonyos/miniprogram）")
     repo_owner: str = Field(default="xll-gif", description="GitHub 仓库所有者")
-    repo_name: str = Field(..., description="GitHub 仓库名称（如：h5-login-app）")
+    repo_name: Optional[str] = Field(default=None, description="GitHub 仓库名称（如：h5-login-app，可选，将从 GlobalState 获取）")
+    h5_repo_name: Optional[str] = Field(default=None, description="H5 仓库名称")
+    ios_repo_name: Optional[str] = Field(default=None, description="iOS 仓库名称")
+    android_repo_name: Optional[str] = Field(default=None, description="Android 仓库名称")
+    harmonyos_repo_name: Optional[str] = Field(default=None, description="鸿蒙仓库名称")
+    miniprogram_repo_name: Optional[str] = Field(default=None, description="小程序仓库名称")
     repo_branch: Optional[str] = Field(default="main", description="分支名（可选）")
     github_token: Optional[str] = Field(default=None, description="GitHub Token（可选）")
 

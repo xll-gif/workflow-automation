@@ -26,7 +26,24 @@ def analyze_harmonyos_project_rules_node(
     """
     ctx = runtime.context
 
-    logger.info(f"开始分析鸿蒙项目规则: {state.repo_owner}/{state.repo_name}")
+    # 根据 platform 获取对应的仓库名称
+    repo_name = state.repo_name
+    if not repo_name:
+        if state.platform == "h5" and state.h5_repo_name:
+            repo_name = state.h5_repo_name
+        elif state.platform == "ios" and state.ios_repo_name:
+            repo_name = state.ios_repo_name
+        elif state.platform == "android" and state.android_repo_name:
+            repo_name = state.android_repo_name
+        elif state.platform == "harmonyos" and state.harmonyos_repo_name:
+            repo_name = state.harmonyos_repo_name
+        elif state.platform == "miniprogram" and state.miniprogram_repo_name:
+            repo_name = state.miniprogram_repo_name
+
+    if not repo_name:
+        raise ValueError(f"无法确定 {state.platform} 平台的仓库名称")
+
+    logger.info(f"开始分析鸿蒙项目规则: {state.repo_owner}/{repo_name}")
 
     try:
         # 从配置文件读取大模型配置

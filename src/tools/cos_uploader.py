@@ -6,7 +6,7 @@
 import os
 import logging
 import requests
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Callable
 from dataclasses import dataclass
 
 # 配置日志
@@ -210,7 +210,7 @@ class TencentCOSUploader:
         file_path: str,
         filename: Optional[str] = None,
         prefix: str = "",
-        on_progress: Optional[callable] = None
+        on_progress: Optional[Callable[[int, int], None]] = None
     ) -> UploadResult:
         """
         上传文件到腾讯云 COS
@@ -343,7 +343,7 @@ class TencentCOSUploader:
         file_path: str,
         filename: Optional[str] = None,
         prefix: str = "assets/",
-        on_progress: Optional[callable] = None
+        on_progress: Optional[Callable[[int, int], None]] = None
     ) -> UploadResult:
         """
         上传文件并上报结果
