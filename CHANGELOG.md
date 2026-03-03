@@ -212,3 +212,178 @@ component_identify -> [h5_code_generation, ios_code_generation, android_code_gen
 - `AndroidCodeGenerationInput`, `AndroidCodeGenerationOutput`
 - `HarmonyOSCodeGenerationInput`, `HarmonyOSCodeGenerationOutput`
 - `MiniprogramCodeGenerationInput`, `MiniprogramCodeGenerationOutput`
+
+---
+
+## 2026-03-02 v4.0 - 添加项目规则解析功能
+
+### 更新内容
+- ✅ 创建 5 个平台的项目规则解析节点
+  - `analyze_h5_project_rules_node` - H5 项目规则解析
+  - `analyze_ios_project_rules_node` - iOS 项目规则解析
+  - `analyze_android_project_rules_node` - Android 项目规则解析
+  - `analyze_harmonyos_project_rules_node` - 鸿蒙项目规则解析
+  - `analyze_miniprogram_project_rules_node` - 小程序项目规则解析
+- ✅ 创建项目规则解析大模型配置文件
+- ✅ 更新 state.py 添加项目规则相关的状态字段
+- ✅ 更新 graph.py 调整工作流结构（规则解析 -> 代码生成）
+- ✅ 在 GlobalState 中添加仓库配置字段
+
+### 工作流变更
+**之前（v3.0）**：
+```
+component_identify -> [五端代码生成] -> fetch_generated_code -> [代码审查 + 测试] -> 推送
+```
+
+**现在（v4.0）**：
+```
+component_identify -> [五端项目规则解析] -> [五端代码生成] -> fetch_generated_code -> [代码审查 + 测试] -> 推送
+```
+
+### 新增节点
+- **analyze_h5_project_rules_node** (`src/graphs/nodes/analyze_h5_project_rules_node.py`)
+  - 功能：分析 H5 项目的编码规范、项目结构、组件使用方式等
+  - 输入：仓库名称、仓库所有者
+  - 输出：项目规则（8个维度：结构、规范、组件、API、样式、测试、依赖、构建）
+  - 配置：`config/analyze_project_rules_cfg.json`
+
+- **analyze_ios_project_rules_node** (`src/graphs/nodes/analyze_ios_project_rules_node.py`)
+  - 功能：分析 iOS 项目的编码规范、项目结构、组件使用方式等
+  - 技术栈：SwiftUI + MVVM 架构
+  - 配置：`config/analyze_project_rules_cfg.json`
+
+- **analyze_android_project_rules_node** (`src/graphs/nodes/analyze_android_project_rules_node.py`)
+  - 功能：分析 Android 项目的编码规范、项目结构、组件使用方式等
+  - 技术栈：Jetpack Compose + Clean Architecture
+  - 配置：`config/analyze_project_rules_cfg.json`
+
+- **analyze_harmonyos_project_rules_node** (`src/graphs/nodes/analyze_harmonyos_project_rules_node.py`)
+  - 功能：分析鸿蒙项目的编码规范、项目结构、组件使用方式等
+  - 技术栈：ArkTS + ArkUI + MVVM 架构
+  - 配置：`config/analyze_project_rules_cfg.json`
+
+- **analyze_miniprogram_project_rules_node** (`src/graphs/nodes/analyze_miniprogram_project_rules_node.py`)
+  - 功能：分析小程序项目的编码规范、项目结构、组件使用方式等
+  - 技术栈：WXML + WXSS + 微信小程序原生开发
+  - 配置：`config/analyze_project_rules_cfg.json`
+
+### 项目规则解析维度
+
+每个平台的项目规则包含以下 8 个维度：
+
+1. **project_structure** (项目结构)
+   - 目录结构
+   - 文件组织方式
+   - 模块划分
+
+2. **coding_standards** (代码规范)
+   - 命名规范
+   - 代码风格
+   - 注释规范
+
+3. **component_usage** (组件使用)
+   - UI 框架/组件库
+   - 常用组件
+   - 自定义组件
+   - 组件引用方式
+
+4. **api_integration** (API 集成)
+   - HTTP 客户端
+   - 基础 URL 配置
+   - 请求/响应拦截器
+   - 错误处理方式
+
+5. **styling** (样式规范)
+   - 样式方案
+   - 样式命名规范
+   - 响应式设计
+   - 主题配置
+
+6. **testing** (测试规范)
+   - 测试框架
+   - 测试文件组织
+   - 测试覆盖率要求
+
+7. **dependencies** (依赖管理)
+   - 包管理器
+   - 常用依赖
+   - 版本规范
+
+8. **build_config** (构建配置)
+   - 构建工具
+   - 环境变量
+   - 打包配置
+
+### 配置文件更新
+- `config/analyze_project_rules_cfg.json` - 项目规则解析配置（temperature=0.2）
+
+### 状态定义更新
+新增 GlobalState 字段：
+- `repo_owner` - GitHub 仓库所有者
+- `h5_repo_name` - H5 仓库名称
+- `ios_repo_name` - iOS 仓库名称
+- `android_repo_name` - Android 仓库名称
+- `harmonyos_repo_name` - 鸿蒙仓库名称
+- `miniprogram_repo_name` - 小程序仓库名称
+
+新增类：
+- `AnalyzeProjectRulesInput` - 项目规则解析输入
+- `AnalyzeProjectRulesOutput` - 项目规则解析输出
+- `ProjectRules` - 项目规则数据结构
+
+### 代码生成优化
+
+通过项目规则解析，代码生成节点可以：
+1. 遵循项目的命名规范
+2. 使用项目的代码风格
+3. 集成项目的组件库
+4. 采用项目的 API 集成方式
+5. 遵循项目的样式规范
+6. 符合项目的测试规范
+7. 使用项目的依赖管理方式
+8. 符合项目的构建配置
+
+### 使用说明
+
+**输入参数**：
+```json
+{
+  "github_issue_url": "https://github.com/xll-gif/workflowDemo/issues/2",
+  "repo_owner": "xll-gif",
+  "h5_repo_name": "h5-login-app",
+  "ios_repo_name": "ios-login-app",
+  "android_repo_name": "android-login-app",
+  "harmonyos_repo_name": "harmonyos-login-app",
+  "miniprogram_repo_name": "miniprogram-login-app"
+}
+```
+
+**工作流执行**：
+1. 需求分析（从 GitHub Issues 获取需求）
+2. 设计稿解析（解析 MasterGo 设计稿）
+3. 静态资源上传（上传到对象存储）
+4. 组件识别（使用 AI 识别设计组件）
+5. **[五端项目规则解析]** ⭐ **v4.0 新增**
+   - H5 项目规则解析
+   - iOS 项目规则解析
+   - Android 项目规则解析
+   - 鸿蒙项目规则解析
+   - 小程序项目规则解析
+6. 五端代码生成（基于项目规则）
+7. 代码收集
+8. [代码审查 + 自动化测试]
+9. 推送到 GitHub
+
+### 注意事项
+- ⚠️ 项目规则解析节点需要 GitHub 仓库访问权限
+- ⚠️ 如果仓库不存在或无法访问，节点会使用默认规则
+- ⚠️ 建议先创建各平台的 GitHub 仓库，再运行工作流
+- ⚠️ 项目规则解析结果会保存在 GlobalState 中，供后续节点使用
+
+### 后续优化方向
+- 支持从本地文件系统读取项目规则
+- 支持自定义规则配置文件
+- 支持规则冲突检测和解决
+- 支持规则版本管理
+- 支持规则推荐和优化建议
+

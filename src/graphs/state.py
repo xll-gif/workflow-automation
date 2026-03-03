@@ -13,6 +13,14 @@ class GlobalState(BaseModel):
     issue_title: str = Field(default="", description="Issue 标题")
     issue_body: str = Field(default="", description="Issue 内容")
 
+    # 仓库配置（v4.0 新增）
+    repo_owner: str = Field(default="xll-gif", description="GitHub 仓库所有者")
+    h5_repo_name: str = Field(default="h5-login-app", description="H5 仓库名称")
+    ios_repo_name: str = Field(default="ios-login-app", description="iOS 仓库名称")
+    android_repo_name: str = Field(default="android-login-app", description="Android 仓库名称")
+    harmonyos_repo_name: str = Field(default="harmonyos-login-app", description="鸿蒙仓库名称")
+    miniprogram_repo_name: str = Field(default="miniprogram-login-app", description="小程序仓库名称")
+
     # 需求分析结果
     feature_list: List[str] = Field(default=[], description="功能列表")
     api_definitions: List[Dict[str, Any]] = Field(default=[], description="API 定义列表")
@@ -57,6 +65,20 @@ class GlobalState(BaseModel):
     # 小程序代码生成结果
     miniprogram_generated_files: List[Dict[str, str]] = Field(default=[], description="小程序生成的文件列表")
     miniprogram_generation_summary: str = Field(default="", description="小程序代码生成摘要")
+
+    # 项目规则（v4.0 新增）
+    h5_project_rules: Dict[str, Any] = Field(default={}, description="H5 项目规则")
+    ios_project_rules: Dict[str, Any] = Field(default={}, description="iOS 项目规则")
+    android_project_rules: Dict[str, Any] = Field(default={}, description="Android 项目规则")
+    harmonyos_project_rules: Dict[str, Any] = Field(default={}, description="鸿蒙项目规则")
+    miniprogram_project_rules: Dict[str, Any] = Field(default={}, description="小程序项目规则")
+
+    # 代码审查报告（v3.0）
+    code_review_report: Dict[str, Any] = Field(default={}, description="代码审查报告")
+
+    # 测试报告（v3.0）
+    test_report: Dict[str, Any] = Field(default={}, description="测试报告")
+
 
 # ==================== 图输入输出 ====================
 class GraphInput(BaseModel):
@@ -432,3 +454,112 @@ class AutoTestOutput(BaseModel):
     test_files: List[Dict[str, str]] = Field(..., description="测试文件列表")
     test_results: Dict[str, Any] = Field(..., description="测试结果")
     summary: str = Field(..., description="测试摘要")
+
+
+# ==================== 拉取远程代码节点定义（v4.0 新增）====================
+
+class PullRemoteCodeInput(BaseModel):
+    """拉取远程代码节点输入"""
+    platform: str = Field(..., description="目标平台（h5/ios/android/harmonyos/miniprogram）")
+    repo_owner: str = Field(default="xll-gif", description="GitHub 仓库所有者")
+    repo_name: str = Field(..., description="GitHub 仓库名称")
+    repo_branch: Optional[str] = Field(default="main", description="分支名（可选）")
+    github_token: Optional[str] = Field(default=None, description="GitHub Token（可选）")
+
+
+class PullRemoteCodeOutput(BaseModel):
+    """拉取远程代码节点输出"""
+    success: bool = Field(..., description="是否成功")
+    platform: str = Field(..., description="目标平台")
+    repo_local_path: str = Field(..., description="本地代码路径")
+    project_rules: ProjectRules = Field(..., description="提取的项目规则")
+    project_structure: Dict[str, Any] = Field(default={}, description="项目结构")
+    code_files: List[Dict[str, Any]] = Field(default=[], description="代码文件列表")
+    summary: str = Field(..., description="处理摘要")
+
+
+# ==================== 项目规则解析节点定义（v4.0 新增）====================
+
+class AnalyzeProjectRulesInput(BaseModel):
+    """项目规则解析节点输入"""
+    platform: str = Field(..., description="目标平台（h5/ios/android/harmonyos/miniprogram）")
+    repo_owner: str = Field(default="xll-gif", description="GitHub 仓库所有者")
+    repo_name: str = Field(..., description="GitHub 仓库名称（如：h5-login-app）")
+    repo_branch: Optional[str] = Field(default="main", description="分支名（可选）")
+    github_token: Optional[str] = Field(default=None, description="GitHub Token（可选）")
+
+
+class ProjectRules(BaseModel):
+    """项目规则数据结构"""
+    project_structure: Dict[str, Any] = Field(default={}, description="项目结构（目录、文件组织、模块划分）")
+    coding_standards: Dict[str, Any] = Field(default={}, description="代码规范（命名、风格、注释）")
+    component_usage: Dict[str, Any] = Field(default={}, description="组件使用（组件库、自定义组件、引用方式）")
+    api_integration: Dict[str, Any] = Field(default={}, description="API 集成（调用方式、错误处理、数据模型）")
+    styling: Dict[str, Any] = Field(default={}, description="样式规范（样式方案、命名、主题）")
+    testing: Dict[str, Any] = Field(default={}, description="测试规范（测试框架、文件组织、覆盖率）")
+    dependencies: Dict[str, Any] = Field(default={}, description="依赖管理（包管理器、常用依赖、版本规范）")
+    build_config: Dict[str, Any] = Field(default={}, description="构建配置（构建工具、环境变量、打包配置）")
+
+
+class AnalyzeProjectRulesOutput(BaseModel):
+    """项目规则解析节点输出"""
+    success: bool = Field(..., description="是否成功")
+    platform: str = Field(..., description="目标平台")
+    project_rules: ProjectRules = Field(..., description="解析出的项目规则")
+    summary: str = Field(..., description="规则解析摘要")
+    warning_count: int = Field(default=0, description="警告数量")
+    warnings: List[str] = Field(default=[], description="警告列表")
+
+
+# ==================== 各平台代码生成节点输入更新（v4.0）====================
+
+class H5CodeGenerationInputV2(BaseModel):
+    """H5 代码生成节点输入（v2 - 包含项目规则）"""
+    feature_list: List[str] = Field(..., description="功能列表")
+    identified_components: List[Dict[str, Any]] = Field(..., description="识别后的组件列表")
+    component_hierarchy: Dict[str, Any] = Field(default={}, description="组件层次结构")
+    layout: Dict[str, Any] = Field(default={}, description="布局信息")
+    static_assets: List[Dict[str, Any]] = Field(default=[], description="静态资源列表")
+    api_definitions: List[Dict[str, Any]] = Field(default=[], description="API 定义列表")
+    project_rules: Optional[ProjectRules] = Field(default=None, description="H5 项目规则（可选）")
+
+
+class IOSCodeGenerationInputV2(BaseModel):
+    """iOS 代码生成节点输入（v2 - 包含项目规则）"""
+    identified_components: List[Dict[str, Any]] = Field(..., description="识别后的组件列表")
+    component_hierarchy: Dict[str, Any] = Field(default={}, description="组件层次结构")
+    api_definitions: List[Dict[str, Any]] = Field(default=[], description="API 定义列表")
+    static_assets: List[Dict[str, Any]] = Field(default=[], description="静态资源列表")
+    feature_list: List[str] = Field(default=[], description="功能列表")
+    project_rules: Optional[ProjectRules] = Field(default=None, description="iOS 项目规则（可选）")
+
+
+class AndroidCodeGenerationInputV2(BaseModel):
+    """Android 代码生成节点输入（v2 - 包含项目规则）"""
+    identified_components: List[Dict[str, Any]] = Field(..., description="识别后的组件列表")
+    component_hierarchy: Dict[str, Any] = Field(default={}, description="组件层次结构")
+    api_definitions: List[Dict[str, Any]] = Field(default=[], description="API 定义列表")
+    static_assets: List[Dict[str, Any]] = Field(default=[], description="静态资源列表")
+    feature_list: List[str] = Field(default=[], description="功能列表")
+    project_rules: Optional[ProjectRules] = Field(default=None, description="Android 项目规则（可选）")
+
+
+class HarmonyOSCodeGenerationInputV2(BaseModel):
+    """鸿蒙代码生成节点输入（v2 - 包含项目规则）"""
+    identified_components: List[Dict[str, Any]] = Field(..., description="识别后的组件列表")
+    component_hierarchy: Dict[str, Any] = Field(default={}, description="组件层次结构")
+    api_definitions: List[Dict[str, Any]] = Field(default=[], description="API 定义列表")
+    static_assets: List[Dict[str, Any]] = Field(default=[], description="静态资源列表")
+    feature_list: List[str] = Field(default=[], description="功能列表")
+    project_rules: Optional[ProjectRules] = Field(default=None, description="鸿蒙项目规则（可选）")
+
+
+class MiniprogramCodeGenerationInputV2(BaseModel):
+    """小程序代码生成节点输入（v2 - 包含项目规则）"""
+    identified_components: List[Dict[str, Any]] = Field(..., description="识别后的组件列表")
+    component_hierarchy: Dict[str, Any] = Field(default={}, description="组件层次结构")
+    api_definitions: List[Dict[str, Any]] = Field(default=[], description="API 定义列表")
+    static_assets: List[Dict[str, Any]] = Field(default=[], description="静态资源列表")
+    feature_list: List[str] = Field(default=[], description="功能列表")
+    project_rules: Optional[ProjectRules] = Field(default=None, description="小程序项目规则（可选）")
+

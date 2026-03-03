@@ -29,6 +29,9 @@ from graphs.state import (
 # 导入 MCP 客户端
 from tools.mastergo_mcp_client import create_mastergo_client
 
+# 导入腾讯云 COS 上传工具
+from tools.cos_uploader import TencentCOSUploader
+
 
 def mastergo_asset_upload_node(
     state: MasterGoAssetUploadInput,
@@ -37,12 +40,46 @@ def mastergo_asset_upload_node(
 ) -> MasterGoAssetUploadOutput:
     """
     title: MasterGo 资源上传
-    desc: 从 MasterGo 设计稿中提取静态资源并上传到对象存储
-    integrations: MasterGo Magic MCP, 对象存储
+    desc: 从 MasterGo 设计稿中提取静态资源并上传到对象存储（支持阿里云 OSS 和腾讯云 COS）
+    integrations: MasterGo Magic MCP, 对象存储（OSS）、腾讯云 COS
     """
     # 获取配置
     use_mock = os.getenv("USE_MOCK_MCP", "true").lower() == "true"
     upload_prefix = state.upload_prefix or "mastergo/assets/"
+
+    # 获取存储后端配置
+    storage_backend = os.getenv("STORAGE_BACKEND", "oss").lower()  # "oss" 或 "cos"
+
+    logger.info(f"开始上传资源到对象存储")
+    logger.info(f"  存储后端: {storage_backend.upper()}")
+
+    # 腾讯云 COS 上传器（如果使用 COS）
+    cos_uploader = None
+    if storage_backend == "cos":
+        try:
+            api_base_url = os.getenv("TENCENT_API_BASE_URL", "")
+            scene_name = os.getenv("TENCENT_SCENE_NAME", "frontend-automation")
+            business_name = os.getenv("TENCENT_BUSINESS_NAME", "workflow")
+            mode = os.getenv("TENCENT_MODE", "dev")
+            token = os.getenv("TENCENT_TOKEN", "")
+            secret_key = os.getenv("TENCENT_SECRET_KEY", "")
+
+            if not api_base_url:
+                logger.warning("TENCENT_API_BASE_URL 未配置，将使用 Mock 模式")
+                storage_backend = "mock"
+            else:
+                cos_uploader = TencentCOSUploader(
+                    api_base_url=api_base_url,
+                    scene_name=scene_name,
+                    business_name=business_name,
+                    mode=mode,
+                    token=token,
+                    secret_key=secret_key
+                )
+                logger.info(f"✅ 腾讯云 COS 上传器初始化成功")
+        except Exception as e:
+            logger.warning(f"腾讯云 COS 上传器初始化失败: {e}，将使用阿里云 OSS")
+            storage_backend = "oss"
 
     # 创建 MCP 客户端
     logger.info(f"正在创建 MasterGo MCP 客户端（Mock: {use_mock}）")
@@ -85,8 +122,8 @@ def mastergo_asset_upload_node(
                 f.write(response.content)
 
             # 上传到对象存储
-            logger.info(f"正在上传资源到对象存储: {asset_name}")
-            oss_url = upload_to_oss(temp_path, upload_prefix + asset_name)
+            logger.info(f"正在上传资源到 {storage_backend.upper()}: {asset_name}")
+            oss_url = upload_to_storage(temp_path, upload_prefix + asset_name, storage_backend, cos_uploader)
 
             # 记录上传成功的资产
             uploaded_assets.append({
@@ -108,8 +145,8 @@ def mastergo_asset_upload_node(
             # 如果下载失败（Mock URL 不存在），使用 Mock 上传
             logger.warning(f"⚠️ 资源下载失败（Mock URL），使用 Mock 上传: {asset_name}")
 
-            # 生成 Mock OSS URL
-            oss_url = f"https://mock-oss.example.com/{upload_prefix}{asset_name}"
+            # 生成 Mock 存储URL
+            oss_url = generate_mock_storage_url(upload_prefix + asset_name)
 
             uploaded_assets.append({
                 "name": asset_name,
@@ -129,7 +166,7 @@ def mastergo_asset_upload_node(
         logger.info("MasterGo MCP 服务器已停止")
 
     # 返回结果
-    message = f"资源上传完成：成功 {successful} 个，失败 {failed} 个"
+    message = f"资源上传完成（{storage_backend.upper()}）：成功 {successful} 个，失败 {failed} 个"
 
     return MasterGoAssetUploadOutput(
         success=failed == 0,
@@ -141,9 +178,55 @@ def mastergo_asset_upload_node(
     )
 
 
+def upload_to_storage(
+    file_path: str,
+    object_key: str,
+    storage_backend: str = "oss",
+    cos_uploader: Optional[TencentCOSUploader] = None
+) -> str:
+    """
+    上传文件到对象存储（支持多种存储后端）
+
+    Args:
+        file_path: 本地文件路径
+        object_key: 对象键（上传路径）
+        storage_backend: 存储后端（oss/cos/mock）
+        cos_uploader: 腾讯云 COS 上传器
+
+    Returns:
+        存储URL
+    """
+    if storage_backend == "cos" and cos_uploader:
+        # 使用腾讯云 COS
+        try:
+            # 从 object_key 提取文件名和前缀
+            # object_key 格式: "prefix/filename"
+            parts = object_key.rsplit("/", 1)
+            if len(parts) == 2:
+                prefix, filename = parts
+            else:
+                prefix = ""
+                filename = object_key
+
+            result = cos_uploader.upload_file(file_path, filename, prefix)
+            if result.success:
+                return result.url
+            else:
+                raise Exception(f"COS 上传失败: {result.error}")
+        except Exception as e:
+            logger.error(f"腾讯云 COS 上传失败: {e}")
+            raise
+    elif storage_backend == "oss":
+        # 使用阿里云 OSS
+        return upload_to_oss(file_path, object_key)
+    else:
+        # Mock 模式
+        return generate_mock_storage_url(object_key)
+
+
 def upload_to_oss(file_path: str, object_key: str) -> str:
     """
-    上传文件到对象存储
+    上传文件到阿里云 OSS
 
     Args:
         file_path: 本地文件路径
@@ -160,7 +243,7 @@ def upload_to_oss(file_path: str, object_key: str) -> str:
 
     # 如果没有配置 OSS，返回 Mock URL
     if not all([access_key_id, access_key_secret, bucket_name, endpoint]):
-        return f"https://mock-oss.example.com/{object_key}"
+        return generate_mock_storage_url(object_key)
 
     # 导入 oss2（仅在配置了 OSS 的情况下）
     try:
@@ -168,7 +251,7 @@ def upload_to_oss(file_path: str, object_key: str) -> str:
     except ImportError:
         # 如果 oss2 未安装，返回 Mock URL
         logger.warning("oss2 模块未安装，使用 Mock URL")
-        return f"https://mock-oss.example.com/{object_key}"
+        return generate_mock_storage_url(object_key)
 
     # 创建 Bucket 实例
     auth = oss2.Auth(access_key_id, access_key_secret)
@@ -179,6 +262,19 @@ def upload_to_oss(file_path: str, object_key: str) -> str:
 
     # 返回 URL
     return f"https://{bucket_name}.{endpoint.replace('https://', '')}/{object_key}"
+
+
+def generate_mock_storage_url(object_key: str) -> str:
+    """
+    生成 Mock 存储URL
+
+    Args:
+        object_key: 对象键
+
+    Returns:
+        Mock URL
+    """
+    return f"https://mock-storage.example.com/{object_key}"
 
 
 # 测试代码

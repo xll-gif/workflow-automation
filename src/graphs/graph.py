@@ -20,6 +20,13 @@ from graphs.nodes.fetch_generated_code_node import fetch_generated_code_node
 from graphs.nodes.code_review_node import code_review_node
 from graphs.nodes.auto_test_node import auto_test_node
 
+# v4.0 新增：项目规则解析节点
+from graphs.nodes.analyze_h5_project_rules_node import analyze_h5_project_rules_node
+from graphs.nodes.analyze_ios_project_rules_node import analyze_ios_project_rules_node
+from graphs.nodes.analyze_android_project_rules_node import analyze_android_project_rules_node
+from graphs.nodes.analyze_harmonyos_project_rules_node import analyze_harmonyos_project_rules_node
+from graphs.nodes.analyze_miniprogram_project_rules_node import analyze_miniprogram_project_rules_node
+
 # 创建状态图，指定图的入参和出参
 builder = StateGraph(GlobalState, input_schema=GraphInput, output_schema=GraphOutput)
 
@@ -31,6 +38,13 @@ builder.add_node("code_gen_and_push", code_gen_and_push_node)
 builder.add_node("design_parse", design_parse_node)
 builder.add_node("mastergo_asset_upload", mastergo_asset_upload_node)
 builder.add_node("component_identify", component_identify_node, metadata={"type": "agent", "llm_cfg": "config/component_identify_cfg.json"})
+
+# v4.0 新增：添加五端项目规则解析节点（并行执行）
+builder.add_node("analyze_h5_project_rules", analyze_h5_project_rules_node, metadata={"type": "agent", "llm_cfg": "config/analyze_project_rules_cfg.json"})
+builder.add_node("analyze_ios_project_rules", analyze_ios_project_rules_node, metadata={"type": "agent", "llm_cfg": "config/analyze_project_rules_cfg.json"})
+builder.add_node("analyze_android_project_rules", analyze_android_project_rules_node, metadata={"type": "agent", "llm_cfg": "config/analyze_project_rules_cfg.json"})
+builder.add_node("analyze_harmonyos_project_rules", analyze_harmonyos_project_rules_node, metadata={"type": "agent", "llm_cfg": "config/analyze_project_rules_cfg.json"})
+builder.add_node("analyze_miniprogram_project_rules", analyze_miniprogram_project_rules_node, metadata={"type": "agent", "llm_cfg": "config/analyze_project_rules_cfg.json"})
 
 # 添加五端代码生成节点（并行执行）
 builder.add_node("h5_code_generation", h5_code_generation_node, metadata={"type": "agent", "llm_cfg": "config/h5_code_generation_cfg.json"})
@@ -56,12 +70,19 @@ builder.add_edge("design_parse", "mastergo_asset_upload")
 # 添加边：从 mastergo_asset_upload 到 component_identify
 builder.add_edge("mastergo_asset_upload", "component_identify")
 
-# 添加边：从 component_identify 到五端代码生成节点（并行执行）
-builder.add_edge("component_identify", "h5_code_generation")
-builder.add_edge("component_identify", "ios_code_generation")
-builder.add_edge("component_identify", "android_code_generation")
-builder.add_edge("component_identify", "harmonyos_code_generation")
-builder.add_edge("component_identify", "miniprogram_code_generation")
+# 添加边：从 component_identify 到五端项目规则解析节点（并行执行）
+builder.add_edge("component_identify", "analyze_h5_project_rules")
+builder.add_edge("component_identify", "analyze_ios_project_rules")
+builder.add_edge("component_identify", "analyze_android_project_rules")
+builder.add_edge("component_identify", "analyze_harmonyos_project_rules")
+builder.add_edge("component_identify", "analyze_miniprogram_project_rules")
+
+# 添加边：从五端项目规则解析节点到对应的代码生成节点
+builder.add_edge("analyze_h5_project_rules", "h5_code_generation")
+builder.add_edge("analyze_ios_project_rules", "ios_code_generation")
+builder.add_edge("analyze_android_project_rules", "android_code_generation")
+builder.add_edge("analyze_harmonyos_project_rules", "harmonyos_code_generation")
+builder.add_edge("analyze_miniprogram_project_rules", "miniprogram_code_generation")
 
 # 添加边：从五端代码生成节点到 fetch_generated_code（所有并行分支完成后）
 builder.add_edge(["h5_code_generation", "ios_code_generation", "android_code_generation", "harmonyos_code_generation", "miniprogram_code_generation"], "fetch_generated_code")

@@ -48,6 +48,8 @@
   - harmonyos_code_generation_node - 鸿蒙代码生成
   - miniprogram_code_generation_node - 小程序代码生成
   - api_spec_generation_node - API 规范生成
+  - code_review_node - 代码审查（v3.0 新增）
+  - auto_test_node - 自动化测试（v3.0 新增）
 
 - **GitHub 集成**:
   - requirement_fetch_node - 获取 GitHub Issues
@@ -58,7 +60,10 @@
   - mastergo_asset_upload_node - 上传 MasterGo 资源到对象存储
 
 - **对象存储**:
-  - mastergo_asset_upload_node - 上传静态资源
+  - mastergo_asset_upload_node - 上传静态资源（支持阿里云 OSS 和腾讯云 COS）
+
+- **腾讯云 COS**:
+  - TencentCOSUploader - 腾讯云 COS 上传器（支持 STS 临时凭证）
 
 - **Postman 集成**:
   - api_spec_generation_node - 生成 Postman Collection
@@ -70,6 +75,7 @@
 | GitHub API Client | `src/tools/github_api_client.py` | GitHub API 客户端 | requirement_fetch_node, github_commit_node |
 | MasterGo MCP Client | `src/tools/mastergo_mcp_client.py` | MasterGo Magic MCP 客户端 | design_parse_node |
 | MasterGo Asset Uploader | `src/tools/mastergo_asset_uploader.py` | MasterGo 资产上传器 | mastergo_asset_upload_node |
+| TencentCOSUploader | `src/tools/cos_uploader.py` | 腾讯云 COS 上传器（支持 STS 临时凭证） | mastergo_asset_upload_node |
 | Postman Generator | `src/tools/postman_generator.py` | Postman Collection 生成器 | api_spec_generation_node |
 | Mock Service Generator | `src/tools/mock_service_generator.py` | Mock 服务生成器（MSW） | mock_service_setup_node |
 
@@ -86,6 +92,8 @@
 | harmonyos_code_generation_cfg.json | `config/harmonyos_code_generation_cfg.json` | 鸿蒙代码生成大模型配置 |
 | miniprogram_code_generation_cfg.json | `config/miniprogram_code_generation_cfg.json` | 小程序代码生成大模型配置 |
 | api_spec_generation_cfg.json | `config/api_spec_generation_cfg.json` | API 规范生成大模型配置 |
+| code_review_cfg.json | `config/code_review_cfg.json` | 代码审查大模型配置（v3.0 新增） |
+| auto_test_cfg.json | `config/auto_test_cfg.json` | 自动化测试大模型配置（v3.0 新增） |
 
 ### 数据结构
 
@@ -105,6 +113,8 @@
 - `mock_data`: Mock 数据
 - `test_results`: 测试结果
 - `review_status`: 审核状态
+- `code_review_report`: 代码审查报告（v3.0 新增）
+- `test_report`: 自动化测试报告（v3.0 新增）
 
 #### 工作流输入 (GraphInput)
 - `requirement_url`: GitHub Issue URL
@@ -119,6 +129,8 @@
 - `miniprogram_code_url`: 小程序代码存储路径/URL
 - `api_spec_url`: API 规范存储路径/URL
 - `test_report_url`: 测试报告存储路径/URL
+- `code_review_report_url`: 代码审查报告存储路径/URL（v3.0 新增）
+- `auto_test_report_url`: 自动化测试报告存储路径/URL（v3.0 新增）
 - `commit_urls`: 各平台代码仓库提交 URL
 
 ### 文档清单
@@ -133,6 +145,7 @@
 | MASTERGO_MCP_INTEGRATION_GUIDE.md | `MASTERGO_MCP_INTEGRATION_GUIDE.md` | MasterGo MCP 集成指南 |
 | MASTERGO_OFFICIAL_MCP_SOLUTION.md | `assets/MASTERGO_OFFICIAL_MCP_SOLUTION.md` | MasterGo 官方 MCP 解决方案 |
 | ENVIRONMENT_VARIABLES.md | `ENVIRONMENT_VARIABLES.md` | 环境变量配置指南 |
+| ENVIRONMENT_VARIABLES.md | `docs/ENVIRONMENT_VARIABLES.md` | 环境变量配置指南（包含腾讯云 COS 配置） |
 | PROXY_EXPLANATION.md | `assets/PROXY_EXPLANATION.md` | 网络代理说明 |
 | MASTERGO_API_SOLUTION_GUIDE.md | `assets/MASTERGO_API_SOLUTION_GUIDE.md` | MasterGo API 问题解决方案 |
 
@@ -144,7 +157,7 @@
 - **设计工具**: MasterGo（通过官方 Magic MCP 集成）
 - **代码仓库**: GitHub（5 个独立仓库）
 - **API 定义**: Postman Collection
-- **对象存储**: OSS/S3
+- **对象存储**: 阿里云 OSS / 腾讯云 COS（支持 STS 临时凭证）
 - **模型能力**: 多模态大模型（设计稿识别）、代码生成大模型
 - **前端技术栈（Demo）**: React 18 + TypeScript + Vite + React Router + Axios + MSW
 
@@ -163,22 +176,18 @@
   ↓
 映射组件（使用组件映射表）
   ↓
-生成 API 规范
-  ↓
-设置 Mock 服务（MSW）
-  ↓
-并行生成各平台代码
+五端并行生成代码
   ├─ iOS 代码
   ├─ Android 代码
   ├─ 鸿蒙代码
   ├─ H5 代码
   └─ 小程序代码
   ↓
-构建前端项目
+收集代码
   ↓
-执行测试
+代码审查（LLM）【v3.0 新增】
   ↓
-人工审核（本地控制台）
+自动化测试（Mock）【v3.0 新增】
   ↓
 提交代码到 GitHub
   ↓
@@ -186,6 +195,32 @@
 ```
 
 ### 当前工作流集成状态
+
+#### v3.0 版本新增节点（2026-02-26）
+- ✅ **code_review_node** - 代码审查节点
+  - 使用大模型进行代码质量检查
+  - 代码规范性验证
+  - 潜在问题识别
+  - 生成审查报告
+- ✅ **auto_test_node** - 自动化测试节点
+  - 编写测试用例
+  - 执行自动化测试
+  - 生成测试报告
+  - 与代码审查节点并行执行
+
+#### v2.0 版本新增节点（2026-02-25）
+- ✅ **fetch_generated_code_node** - 代码收集节点
+  - 收集五端生成的代码
+  - 整理代码结构
+- ✅ **code_gen_and_push_node** - 代码推送节点
+  - 推送代码到 GitHub
+
+#### v1.0 版本新增节点（2026-02-24）
+- ✅ **ios_code_generation_node** - iOS 代码生成节点
+- ✅ **android_code_generation_node** - Android 代码生成节点
+- ✅ **harmonyos_code_generation_node** - 鸿蒙代码生成节点
+- ✅ **miniprogram_code_generation_node** - 小程序代码生成节点
+- 实现五端并行代码生成，提升效率约4.3倍
 
 #### 已集成的节点（2026-01-09）
 - ✅ **requirement_analysis_node** - 需求分析节点
@@ -640,3 +675,159 @@ mastergo_asset_upload_node (上传静态资源) ✅
 *文档版本：2.0*
 *更新日期：2026-02-28*
 *更新内容：添加 MasterGo Magic MCP 集成说明*
+### 腾讯云 COS 集成（v4.0 版本新增）
+
+#### 更新时间
+2026-03-03
+
+#### 更新内容
+
+1. **新增腾讯云 COS 上传器**
+   - 文件位置：`src/tools/cos_uploader.py`
+   - 功能：支持通过 STS 临时凭证上传文件到腾讯云 COS
+   - 特点：
+     - 使用后端 API 获取 STS 临时凭证（更安全）
+     - 支持自定义场景名称和业务名称
+     - 支持多环境配置（dev/test/prod）
+     - 提供详细的错误处理和日志记录
+
+2. **更新 MasterGo 资源上传节点**
+   - 文件位置：`src/graphs/nodes/mastergo_asset_upload_node.py`
+   - 新增功能：
+     - 支持多种存储后端：阿里云 OSS、腾讯云 COS、Mock 模式
+     - 通过环境变量 `STORAGE_BACKEND` 选择存储后端
+     - 自动降级：当 COS 配置不完整时，自动切换到 OSS 或 Mock
+
+3. **新增环境变量配置**
+   ```bash
+   # 存储后端选择
+   export STORAGE_BACKEND="cos"  # oss / cos / mock
+
+   # 腾讯云 COS 配置
+   export TENCENT_API_BASE_URL="https://your-backend-api.com"
+   export TENCENT_SCENE_NAME="frontend-automation"
+   export TENCENT_BUSINESS_NAME="workflow"
+   export TENCENT_MODE="dev"  # dev, test, prod
+   export TENCENT_TOKEN="your_token"
+   export TENCENT_SECRET_KEY="your_secret_key"
+   ```
+
+4. **新增环境变量配置文档**
+   - 文件位置：`docs/ENVIRONMENT_VARIABLES.md`
+   - 内容：
+     - 完整的环境变量配置指南
+     - 腾讯云 COS 详细配置说明
+     - STS 临时凭证机制说明
+     - 故障排查指南
+
+#### 技术实现
+
+**TencentCOSUploader 类**：
+```python
+class TencentCOSUploader:
+    """腾讯云 COS 上传器（支持 STS 临时凭证）"""
+
+    def __init__(self, api_base_url: str, scene_name: str,
+                 business_name: str, mode: str,
+                 token: str, secret_key: str)
+
+    def upload_file(self, file_path: str, filename: str,
+                    prefix: str) -> UploadResult
+```
+
+**STS 临时凭证获取流程**：
+1. 调用后端 API 获取临时凭证
+2. 使用临时凭证初始化 COS SDK
+3. 上传文件到 COS
+4. 上传结果上报到后端
+
+**存储后端选择逻辑**：
+```
+STORAGE_BACKEND=cos → 使用腾讯云 COS
+STORAGE_BACKEND=oss → 使用阿里云 OSS
+STORAGE_BACKEND=mock → 使用 Mock 模式
+```
+
+#### 配置示例
+
+**阿里云 OSS 配置**：
+```bash
+export STORAGE_BACKEND="oss"
+export OSS_ACCESS_KEY_ID="your_access_key_id"
+export OSS_ACCESS_KEY_SECRET="your_access_key_secret"
+export OSS_BUCKET="your_bucket_name"
+export OSS_ENDPOINT="https://oss-cn-hangzhou.aliyuncs.com"
+```
+
+**腾讯云 COS 配置**：
+```bash
+export STORAGE_BACKEND="cos"
+export TENCENT_API_BASE_URL="https://your-backend-api.com"
+export TENCENT_SCENE_NAME="frontend-automation"
+export TENCENT_BUSINESS_NAME="workflow"
+export TENCENT_MODE="dev"
+export TENCENT_TOKEN="your_token"
+export TENCENT_SECRET_KEY="your_secret_key"
+```
+
+**Mock 模式配置**：
+```bash
+export STORAGE_BACKEND="mock"
+```
+
+#### 使用建议
+
+1. **生产环境**：
+   - 推荐使用腾讯云 COS（STS 临时凭证更安全）
+   - 配置 `TENCENT_MODE=prod`
+   - 确保后端 API 可用且稳定
+
+2. **开发环境**：
+   - 推荐使用 Mock 模式快速测试
+   - 或使用阿里云 OSS（配置简单）
+
+3. **测试环境**：
+   - 使用腾讯云 COS（`TENCENT_MODE=test`）
+   - 或使用阿里云 OSS
+
+#### 安全提示
+
+1. **STS 临时凭证机制**：
+   - 不直接使用永久密钥，通过后端 API 获取临时凭证
+   - 临时凭证有有效期，过期后自动失效
+   - 降低密钥泄露风险
+
+2. **Token 和 Secret Key 保护**：
+   - 不要将 Token 和 Secret Key 提交到 Git 仓库
+   - 使用 `.env` 文件管理敏感信息
+   - 定期轮换 Token 和 Secret Key
+
+3. **后端 API 安全**：
+   - 确保 `TENCENT_API_BASE_URL` 使用 HTTPS
+   - 实现访问控制和速率限制
+   - 监控 API 调用日志
+
+#### 故障排查
+
+**问题**：无法上传文件到腾讯云 COS
+
+**解决步骤**：
+1. 检查 `TENCENT_API_BASE_URL` 是否正确
+2. 检查后端 API 是否可访问
+3. 检查 `TENCENT_TOKEN` 和 `TENCENT_SECRET_KEY` 是否正确
+4. 查看日志获取详细错误信息
+
+**自动降级机制**：
+- 当 COS 配置不完整或上传失败时，自动切换到 OSS 或 Mock
+- 确保工作流不会因为存储问题而中断
+
+#### 相关文档
+
+- [环境变量配置指南](docs/ENVIRONMENT_VARIABLES.md)
+- [腾讯云 COS 官方文档](https://cloud.tencent.com/document/product/436)
+
+---
+
+*文档版本：4.0*
+*更新日期：2026-03-03*
+*更新内容：添加腾讯云 COS 集成说明*
