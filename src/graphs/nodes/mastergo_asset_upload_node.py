@@ -50,8 +50,15 @@ def mastergo_asset_upload_node(
     # 获取存储后端配置
     storage_backend = os.getenv("STORAGE_BACKEND", "oss").lower()  # "oss" 或 "cos"
 
+    # Logo 固定地址（用户手动上传）
+    LOGO_FIXED_URL = os.getenv(
+        "LOGO_FIXED_URL",
+        "https://cdn.weipaitang.com/sky/resourceMan/tupianfv/image/20260303/594f688d556e4a78bd597508c9ebd709-W140H140"
+    )
+
     logger.info(f"开始上传资源到对象存储")
     logger.info(f"  存储后端: {storage_backend.upper()}")
+    logger.info(f"  Logo 固定地址: {LOGO_FIXED_URL}")
 
     # 腾讯云 COS 上传器（如果使用 COS）
     cos_uploader = None
@@ -109,7 +116,32 @@ def mastergo_asset_upload_node(
         asset_name = asset.get("name", f"asset_{uuid.uuid4()}")
         asset_type = asset.get("type", "IMAGE")
 
+        # 检查是否是 logo（根据文件名识别）
+        is_logo = "logo" in asset_name.lower()
+
         try:
+            # 如果是 logo，直接使用固定地址
+            if is_logo:
+                logger.info(f"🎯 检测到 Logo 资源: {asset_name}")
+                logger.info(f"  使用固定地址: {LOGO_FIXED_URL}")
+
+                oss_url = LOGO_FIXED_URL
+
+                # 记录上传成功的资产
+                uploaded_assets.append({
+                    "name": asset_name,
+                    "type": asset_type,
+                    "original_url": asset_url,
+                    "oss_url": oss_url,
+                    "width": asset.get("width", 140),  # Logo 固定尺寸
+                    "height": asset.get("height", 140),
+                    "is_logo": True  # 标记为 logo
+                })
+
+                successful += 1
+                logger.info(f"✅ Logo 使用固定地址成功: {asset_name} -> {oss_url}")
+                continue  # 跳过后续处理
+
             # 下载资源
             logger.info(f"正在下载资源: {asset_name}")
             response = requests.get(asset_url, timeout=10)

@@ -11,6 +11,16 @@ import requests
 from typing import Dict, Any, Optional, List, Callable
 from dataclasses import dataclass
 
+# 导入 qcloud_cos SDK（如果不存在则跳过，运行时会处理）
+try:
+    from qcloud_cos import CosConfig
+    from qcloud_cos import CosS3Client
+    QCLOUD_COS_AVAILABLE = True
+except ImportError:
+    QCLOUD_COS_AVAILABLE = False
+    CosConfig = None
+    CosS3Client = None
+
 # 配置日志
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -177,30 +187,21 @@ class WPTCOSUploader:
         Args:
             credentials: STS 凭证
         """
-        try:
-            from qcloud_cos import CosConfig
-            from qcloud_cos import CosS3Client
-
-            # 配置 COS 客户端
-            config = CosConfig(
-                Region=credentials.region,
-                SecretId=credentials.tmp_secret_id,
-                SecretKey=credentials.tmp_secret_key,
-                Token=credentials.session_token,
-                Scheme='https'
-            )
-
-            self.cos_client = CosS3Client(config)
-
-            logger.info("COS 客户端初始化成功")
-
-        except ImportError:
+        if not QCLOUD_COS_AVAILABLE:
             logger.error("未安装 qcloud_cos 包，正在安装...")
             os.system("pip install cos-python-sdk-v5")
-            from qcloud_cos import CosConfig
-            from qcloud_cos import CosS3Client
-
-            config = CosConfig(
+            # 重新导入
+            from qcloud_cos import CosConfig as ReloadedCosConfig
+            from qcloud_cos import CosS3Client as ReloadedCosS3Client
+            cos_config_class = ReloadedCosConfig
+            cos_client_class = ReloadedCosS3Client
+        else:
+            cos_config_class = CosConfig
+            cos_client_class = CosS3Client
+        
+        try:
+            # 配置 COS 客户端
+            config = cos_config_class(
                 Region=credentials.region,
                 SecretId=credentials.tmp_secret_id,
                 SecretKey=credentials.tmp_secret_key,
@@ -208,8 +209,10 @@ class WPTCOSUploader:
                 Scheme='https'
             )
 
-            self.cos_client = CosS3Client(config)
+            self.cos_client = cos_client_class(config)
+
             logger.info("COS 客户端初始化成功")
+
         except Exception as e:
             logger.error(f"COS 客户端初始化失败: {e}")
             raise

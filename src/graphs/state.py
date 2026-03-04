@@ -79,6 +79,20 @@ class GlobalState(BaseModel):
     # 测试报告（v3.0）
     test_report: Dict[str, Any] = Field(default={}, description="测试报告")
 
+    # 推送结果（v5.0 新增）
+    h5_push_result: Dict[str, Any] = Field(default={}, description="H5 推送结果")
+    ios_push_result: Dict[str, Any] = Field(default={}, description="iOS 推送结果")
+    android_push_result: Dict[str, Any] = Field(default={}, description="Android 推送结果")
+    harmonyos_push_result: Dict[str, Any] = Field(default={}, description="鸿蒙推送结果")
+    miniprogram_push_result: Dict[str, Any] = Field(default={}, description="小程序推送结果")
+
+    # 拉取代码结果（v6.0 新增）
+    h5_pull_result: Dict[str, Any] = Field(default={}, description="H5 拉取代码结果")
+    ios_pull_result: Dict[str, Any] = Field(default={}, description="iOS 拉取代码结果")
+    android_pull_result: Dict[str, Any] = Field(default={}, description="Android 拉取代码结果")
+    harmonyos_pull_result: Dict[str, Any] = Field(default={}, description="鸿蒙拉取代码结果")
+    miniprogram_pull_result: Dict[str, Any] = Field(default={}, description="小程序拉取代码结果")
+
 
 # ==================== 图输入输出 ====================
 class GraphInput(BaseModel):
@@ -87,6 +101,7 @@ class GraphInput(BaseModel):
     github_issue_url: str = Field(default="", description="GitHub Issue URL")
     issue_title: str = Field(default="", description="Issue 标题")
     issue_body: str = Field(default="", description="Issue 内容")
+    mastergo_url: str = Field(default="", description="MasterGo 设计稿 URL（可选，如果不提供将尝试从 issue_body 中提取）")
 
 class GraphOutput(BaseModel):
     """工作流输出"""
@@ -199,6 +214,125 @@ class DesignParseOutput(BaseModel):
     mastergo_summary: str = Field(..., description="设计稿摘要")
 
 
+class AssetProcessingInput(BaseModel):
+    """资源处理节点输入"""
+    static_assets: List[Dict[str, Any]] = Field(..., description="静态资源列表")
+    storage_type: str = Field(default="mock", description="存储类型：mock/oss/cos")
+
+
+class AssetProcessingOutput(BaseModel):
+    """资源处理节点输出"""
+    processed_assets: List[Dict[str, Any]] = Field(default=[], description="处理后的资源列表（包含URL）")
+    logo_url: str = Field(default="", description="Logo URL（使用mock地址）")
+    asset_summary: str = Field(..., description="资源处理摘要")
+
+
+class ComponentRecognitionInput(BaseModel):
+    """组件识别节点输入"""
+    components: List[Dict[str, Any]] = Field(..., description="设计稿组件列表")
+    layout: Dict[str, Any] = Field(default={}, description="布局信息")
+    processed_assets: List[Dict[str, Any]] = Field(default=[], description="处理后的资源列表")
+
+
+class ComponentRecognitionOutput(BaseModel):
+    """组件识别节点输出"""
+    identified_components: List[Dict[str, Any]] = Field(default=[], description="识别后的组件列表")
+    component_hierarchy: Dict[str, Any] = Field(default={}, description="组件层次结构")
+    design_summary: str = Field(..., description="设计摘要")
+    suggestions: List[str] = Field(default=[], description="设计建议")
+
+
+class CodeGenerationInput(BaseModel):
+    """代码生成节点输入"""
+    platform: str = Field(..., description="目标平台：ios/android/harmonyos/h5/miniprogram")
+    feature_name: str = Field(..., description="功能名称")
+    identified_components: List[Dict[str, Any]] = Field(default=[], description="识别后的组件列表")
+    component_hierarchy: Dict[str, Any] = Field(default={}, description="组件层次结构")
+    processed_assets: List[Dict[str, Any]] = Field(default=[], description="处理后的资源列表")
+    api_definitions: List[Dict[str, Any]] = Field(default=[], description="API 定义列表")
+
+
+class CodeGenerationOutput(BaseModel):
+    """代码生成节点输出"""
+    platform: str = Field(..., description="目标平台")
+    generated_files: List[Dict[str, str]] = Field(default=[], description="生成的文件列表（path, content）")
+    generation_summary: str = Field(..., description="代码生成摘要")
+    dependencies: List[str] = Field(default=[], description="依赖列表")
+
+
+class CodeReviewInput(BaseModel):
+    """代码审查节点输入"""
+    platform: str = Field(..., description="平台标识")
+    generated_files: List[Dict[str, str]] = Field(default=[], description="生成的文件列表")
+
+
+class CodeReviewOutput(BaseModel):
+    """代码审查节点输出"""
+    platform: str = Field(..., description="平台标识")
+    review_report: Dict[str, Any] = Field(default={}, description="审查报告")
+    issues_found: List[Dict[str, Any]] = Field(default=[], description="发现的问题列表")
+    is_passed: bool = Field(default=False, description="是否通过审查")
+    review_summary: str = Field(..., description="审查摘要")
+
+
+class TestingInput(BaseModel):
+    """测试验证节点输入"""
+    platform: str = Field(default="", description="平台标识（可选，可从节点名称推导）")
+    generated_files: List[Dict[str, str]] = Field(default=[], description="生成的文件列表")
+
+
+class TestingOutput(BaseModel):
+    """测试验证节点输出"""
+    platform: str = Field(..., description="平台标识")
+    test_report: Dict[str, Any] = Field(default={}, description="测试报告")
+    test_cases_passed: int = Field(default=0, description="通过的测试用例数")
+    test_cases_failed: int = Field(default=0, description="失败的测试用例数")
+    is_passed: bool = Field(default=False, description="是否通过测试")
+    test_summary: str = Field(..., description="测试摘要")
+
+
+class CommitToRepoInput(BaseModel):
+    """提交到仓库节点输入"""
+    platform: str = Field(..., description="平台标识")
+    repo_owner: str = Field(default="xll-gif", description="仓库所有者")
+    repo_name: str = Field(..., description="仓库名称")
+    branch_name: str = Field(default="feature/login-page", description="分支名称")
+    generated_files: List[Dict[str, str]] = Field(default=[], description="生成的文件列表")
+    commit_message: str = Field(..., description="提交消息")
+    create_pr: bool = Field(default=False, description="是否创建 PR")
+    pr_title: str = Field(default="", description="PR 标题")
+
+
+class CommitToRepoOutput(BaseModel):
+    """提交到仓库节点输出"""
+    platform: str = Field(..., description="平台标识")
+    commit_successful: bool = Field(default=False, description="提交是否成功")
+    branch_url: str = Field(default="", description="分支 URL")
+    pr_url: str = Field(default="", description="Pull Request URL")
+    error_message: str = Field(default="", description="错误信息")
+    summary: str = Field(..., description="操作摘要")
+
+
+class AllPlatformsSummaryInput(BaseModel):
+    """五端汇总节点输入"""
+    ios_generation_summary: str = Field(default="", description="iOS 代码生成摘要")
+    android_generation_summary: str = Field(default="", description="Android 代码生成摘要")
+    harmonyos_generation_summary: str = Field(default="", description="鸿蒙代码生成摘要")
+    h5_generation_summary: str = Field(default="", description="H5 代码生成摘要")
+    miniprogram_generation_summary: str = Field(default="", description="小程序代码生成摘要")
+    code_review_report: Dict[str, Any] = Field(default={}, description="代码审查报告")
+    test_report: Dict[str, Any] = Field(default={}, description="测试报告")
+
+
+class AllPlatformsSummaryOutput(BaseModel):
+    """五端汇总节点输出"""
+    final_summary: str = Field(..., description="最终汇总")
+    total_files_generated: int = Field(default=0, description="总生成文件数")
+    platforms_completed: List[str] = Field(default=[], description="完成的平台列表")
+    issues_summary: str = Field(default="", description="问题汇总")
+    next_steps: List[str] = Field(default=[], description="后续步骤")
+
+
 class MasterGoAssetUploadInput(BaseModel):
     """MasterGo 资产上传节点输入"""
     mastergo_url: str = Field(..., description="MasterGo 设计稿 URL")
@@ -283,7 +417,7 @@ class ComponentIdentifyOutput(BaseModel):
 
 class H5CodeGenerationInput(BaseModel):
     """H5 代码生成节点输入"""
-    feature_list: List[str] = Field(..., description="功能列表")
+    feature_list: List[str] = Field(default=[], description="功能列表")
     identified_components: List[Dict[str, Any]] = Field(..., description="识别后的组件列表")
     component_hierarchy: Dict[str, Any] = Field(default={}, description="组件层次结构")
     layout: Dict[str, Any] = Field(default={}, description="布局信息")
@@ -581,4 +715,117 @@ class MiniprogramCodeGenerationInputV2(BaseModel):
     static_assets: List[Dict[str, Any]] = Field(default=[], description="静态资源列表")
     feature_list: List[str] = Field(default=[], description="功能列表")
     project_rules: Optional[ProjectRules] = Field(default=None, description="小程序项目规则（可选）")
+
+
+# ==================== Git 推送节点输入输出（v5.0 新增）====================
+
+class H5GitPushInput(BaseModel):
+    """H5 Git 推送节点输入"""
+    h5_generated_files: List[Dict[str, str]] = Field(..., description="H5 生成的文件列表")
+    repo_owner: str = Field(..., description="GitHub 仓库所有者")
+    h5_repo_name: str = Field(..., description="H5 仓库名称")
+    issue_title: str = Field(..., description="Issue 标题")
+    feature_list: List[str] = Field(default=[], description="功能列表")
+
+
+class H5GitPushOutput(BaseModel):
+    """H5 Git 推送节点输出"""
+    h5_push_result: Dict[str, Any] = Field(..., description="H5 推送结果")
+
+
+class IOSGitPushInput(BaseModel):
+    """iOS Git 推送节点输入"""
+    ios_generated_files: List[Dict[str, str]] = Field(..., description="iOS 生成的文件列表")
+    repo_owner: str = Field(..., description="GitHub 仓库所有者")
+    ios_repo_name: str = Field(..., description="iOS 仓库名称")
+    issue_title: str = Field(..., description="Issue 标题")
+    feature_list: List[str] = Field(default=[], description="功能列表")
+
+
+class IOSGitPushOutput(BaseModel):
+    """iOS Git 推送节点输出"""
+    ios_push_result: Dict[str, Any] = Field(..., description="iOS 推送结果")
+
+
+class AndroidGitPushInput(BaseModel):
+    """Android Git 推送节点输入"""
+    android_generated_files: List[Dict[str, str]] = Field(..., description="Android 生成的文件列表")
+    repo_owner: str = Field(..., description="GitHub 仓库所有者")
+    android_repo_name: str = Field(..., description="Android 仓库名称")
+    issue_title: str = Field(..., description="Issue 标题")
+    feature_list: List[str] = Field(default=[], description="功能列表")
+
+
+class AndroidGitPushOutput(BaseModel):
+    """Android Git 推送节点输出"""
+    android_push_result: Dict[str, Any] = Field(..., description="Android 推送结果")
+
+
+class HarmonyOSGitPushInput(BaseModel):
+    """鸿蒙 Git 推送节点输入"""
+    harmonyos_generated_files: List[Dict[str, str]] = Field(..., description="鸿蒙生成的文件列表")
+    repo_owner: str = Field(..., description="GitHub 仓库所有者")
+    harmonyos_repo_name: str = Field(..., description="鸿蒙仓库名称")
+    issue_title: str = Field(..., description="Issue 标题")
+    feature_list: List[str] = Field(default=[], description="功能列表")
+
+
+class HarmonyOSGitPushOutput(BaseModel):
+    """鸿蒙 Git 推送节点输出"""
+    harmonyos_push_result: Dict[str, Any] = Field(..., description="鸿蒙推送结果")
+
+
+class MiniprogramGitPushInput(BaseModel):
+    """小程序 Git 推送节点输入"""
+    miniprogram_generated_files: List[Dict[str, str]] = Field(..., description="小程序生成的文件列表")
+    repo_owner: str = Field(..., description="GitHub 仓库所有者")
+    miniprogram_repo_name: str = Field(..., description="小程序仓库名称")
+    issue_title: str = Field(..., description="Issue 标题")
+    feature_list: List[str] = Field(default=[], description="功能列表")
+
+
+class MiniprogramGitPushOutput(BaseModel):
+    """小程序 Git 推送节点输出"""
+    miniprogram_push_result: Dict[str, Any] = Field(..., description="小程序推送结果")
+
+
+# ==================== 联调测试节点定义（v7.0 新增）====================
+
+class IntegrationTestInput(BaseModel):
+    """联调测试节点输入"""
+    platform: str = Field(..., description="目标平台（h5/ios/android/harmonyos/miniprogram）")
+    generated_code: Dict[str, str] = Field(default={}, description="生成的代码字典")
+    api_definitions: List[Dict[str, Any]] = Field(default=[], description="API 定义列表")
+    use_mock: bool = Field(default=True, description="是否使用 Mock 数据")
+    mock_type: str = Field(default="msw", description="Mock 类型（msw/mockjs）")
+
+
+class IntegrationTestOutput(BaseModel):
+    """联调测试节点输出"""
+    success: bool = Field(..., description="联调测试是否成功")
+    platform: str = Field(..., description="目标平台")
+    test_results: Dict[str, Any] = Field(default={}, description="测试结果")
+    api_calls: List[Dict[str, Any]] = Field(default=[], description="API 调用记录")
+    errors: List[Dict[str, Any]] = Field(default=[], description="错误列表")
+    issues_found: List[Dict[str, Any]] = Field(default=[], description="发现的问题列表")
+    summary: str = Field(..., description="测试摘要")
+
+
+class IntegrationFixInput(BaseModel):
+    """联调问题修复节点输入"""
+    platform: str = Field(..., description="目标平台（h5/ios/android/harmonyos/miniprogram）")
+    generated_code: Dict[str, str] = Field(default={}, description="生成的代码字典")
+    integration_test_result: Dict[str, Any] = Field(default={}, description="联调测试结果")
+    issues_to_fix: List[Dict[str, Any]] = Field(default=[], description="需要修复的问题列表")
+
+
+class IntegrationFixOutput(BaseModel):
+    """联调问题修复节点输出"""
+    success: bool = Field(..., description="修复是否成功")
+    platform: str = Field(..., description="目标平台")
+    fixed_code: Dict[str, str] = Field(default={}, description="修复后的代码")
+    fixes_applied: List[Dict[str, Any]] = Field(default=[], description="应用的修复列表")
+    remaining_issues: List[Dict[str, Any]] = Field(default=[], description="剩余未解决的问题")
+    summary: str = Field(..., description="修复摘要")
+
 

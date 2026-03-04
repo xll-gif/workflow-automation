@@ -1,0 +1,69 @@
+{
+  "colors": {
+    "primary": {
+      "default": "Color(hex: \"#1890ff\")",
+      "hover": "Color(hex: \"#40a9ff\")",
+      "active": "Color(hex: \"#096dd9\")",
+      "disabled": "Color(hex: \"#d9d9d9\")"
+    },
+    "success": {
+      "default": "Color(hex: \"#52c41a\")",
+      "hover": "Color(hex: \"#73d13d\")",
+      "active": "Color(hex: \"#389e0d\")"
+    },
+    "warning": {
+      "default": "Color(hex: \"#faad14\")",
+      "hover": "Color(hex: \"#ffc53d\")",
+      "active": "Color(hex: \"#d48806\")"
+    },
+    "error": {
+      "default": "Color(hex: \"#ff4d4f\")",
+      "hover": "Color(hex: \"#ff7875\")",
+      "active": "Color(hex: \"#cf1322\")"
+    },
+    "text": {
+      "primary": "Color(hex: \"#262626\")",
+      "secondary": "Color(hex: \"#595959\")",
+      "tertiary": "Color(hex: \"#8c8c8c\")",
+      "disabled": "Color(hex: \"#bfbfbf\")",
+      "inverse": "Color(hex: \"#ffffff\")"
+    },
+    "background": {
+      "default": "Color(hex: \"#ffffff\")",
+      "secondary": "Color(hex: \"#fafafa\")",
+      "tertiary": "Color(hex: \"#f5f5f5\")",
+      "disabled": "Color(hex: \"#f0f0f0\")"
+    },
+    "border": {
+      "default": "Color(hex: \"#d9d9d9\")",
+      "light": "Color(hex: \"#f0f0f0\")",
+      "dark": "Color(hex: \"#262626\")"
+    }
+  },
+  "spacing": {
+    "xs": "4pt",
+    "sm": "8pt",
+    "md": "16pt",
+    "lg": "24pt",
+    "xl": "32pt",
+    "xxl": "48pt",
+    "xxxl": "64pt"
+  },
+  "fontSize": {
+    "xs": "12pt",
+    "sm": "14pt",
+    "md": "16pt",
+    "lg": "18pt",
+    "xl": "20pt",
+    "xxl": "24pt",
+    "xxxl": "32pt",
+    "display": "48pt"
+  },
+  "borderRadius": {
+    "sm": "4pt",
+    "md": "8pt",
+    "lg": "12pt",
+    "xl": "16pt",
+    "round": "CornerSize.infinity"
+  }
+}

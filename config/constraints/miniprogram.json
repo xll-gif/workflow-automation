@@ -1,0 +1,209 @@
+{
+  "platform": "miniprogram",
+  "name": "小程序登录应用",
+  "repository": "miniprogram-login-app",
+  "version": "1.0.0",
+  "project_structure": {
+    "root_dirs": ["pages", "components", "utils", "api", "services"],
+    "pages_dir": "pages",
+    "components_dir": "components",
+    "utils_dir": "utils",
+    "api_dir": "api",
+    "file_patterns": {
+      "page": "{featureName}/index",
+      "component": "{featureName}/index",
+      "utils": "{featureName}.js",
+      "api": "{featureName}API.js",
+      "service": "{featureName}Service.js"
+    }
+  },
+  "naming_conventions": {
+    "class": "PascalCase",
+    "method": "camelCase",
+    "variable": "camelCase",
+    "constant": "UPPER_SNAKE_CASE",
+    "file": "lowercase with hyphens",
+    "component": "lowercase with hyphens",
+    "page": "lowercase with hyphens"
+  },
+  "code_style": {
+    "indentation": "2 spaces",
+    "line_length": 100,
+    "quotes": "single",
+    "semi": true,
+    "eslint": true
+  },
+  "tech_stack": {
+    "language": "JavaScript / TypeScript",
+    "language_version": "ES2020",
+    "framework": "原生小程序 / uni-app / Taro",
+    "ui_library": "WeUI / Vant Weapp / uView",
+    "minimum_version": "2.0.0",
+    "dependencies": [
+      "vant-weapp@^1.11",
+      "@vant/weapp@^1.11"
+    ],
+    "dev_dependencies": [
+      "miniprogram-api-typings@^3.12"
+    ]
+  },
+  "component_mapping": {
+    "Button": "button / van-button",
+    "Input": "input / van-field",
+    "InputPassword": "input password / van-field type='password'",
+    "Image": "image / van-image",
+    "Text": "text / text",
+    "View": "view / view",
+    "ScrollView": "scroll-view / scroll-view",
+    "Swiper": "swiper / swiper",
+    "Icon": "icon / van-icon",
+    "Picker": "picker / van-picker",
+    "Radio": "radio / van-radio",
+    "Checkbox": "checkbox / van-checkbox",
+    "Switch": "switch / van-switch",
+    "Slider": "slider / van-slider",
+    "Rate": "rate / van-rate",
+    "Stepper": "stepper / van-stepper",
+    "Upload": "uploader / van-uploader",
+    "Calendar": "calendar / van-calendar",
+    "Popup": "popup / van-popup",
+    "Dialog": "modal / van-dialog",
+    "Toast": "toast / van-toast",
+    "Loading": "loading / van-loading",
+    "Overlay": "overlay / van-overlay",
+    "Navbar": "navbar (custom) / van-nav-bar",
+    "Tabbar": "tabbar / van-tabbar",
+    "Tabs": "tabs / van-tabs",
+    "Cell": "cell / van-cell",
+    "CellGroup": "cell-group / van-cell-group",
+    "Card": "card (custom) / van-card",
+    "Panel": "panel (custom) / van-panel",
+    "ActionSheet": "action-sheet / van-action-sheet",
+    "NoticeBar": "notice-bar / van-notice-bar",
+    "Search": "search / van-search",
+    "DropdownMenu": "dropdown-menu / van-dropdown-menu",
+    "IndexBar": "index-bar / van-index-bar",
+    "Sidebar": "sidebar / van-sidebar",
+    "Collapse": "collapse / van-collapse",
+    "Grid": "grid / van-grid",
+    "Empty": "empty / van-empty"
+  },
+  "style_guide": {
+    "colors": {
+      "primary": "#07C160",
+      "primary_active": "#06AD56",
+      "success": "#07C160",
+      "warning": "#FF976A",
+      "danger": "#EE0A24",
+      "info": "#1989FA",
+      "background": "#F7F8FA",
+      "background_page": "#FFFFFF",
+      "text_primary": "#323233",
+      "text_regular": "#646566",
+      "text_secondary": "#969799",
+      "text_placeholder": "#C8C9CC",
+      "border_base": "#E5E5E5",
+      "border_light": "#F2F3F5"
+    },
+    "fonts": {
+      "headline": "18px, 500",
+      "body": "14px, 400",
+      "body_large": "16px, 400",
+      "caption": "12px, 400",
+      "label": "14px, 500"
+    },
+    "spacing": {
+      "xs": "4rpx",
+      "sm": "8rpx",
+      "md": "16rpx",
+      "lg": "24rpx",
+      "xl": "32rpx",
+      "xxl": "48rpx"
+    },
+    "border_radius": {
+      "sm": "4rpx",
+      "md": "8rpx",
+      "lg": "16rpx",
+      "xl": "24rpx",
+      "pill": "9999rpx"
+    },
+    "safe_area": {
+      "top": "env(safe-area-inset-top)",
+      "bottom": "env(safe-area-inset-bottom)",
+      "left": "env(safe-area-inset-left)",
+      "right": "env(safe-area-inset-right)"
+    }
+  },
+  "api_integration": {
+    "base_url": "https://api.example.com",
+    "timeout": 30000,
+    "retry_policy": {
+      "max_retries": 3,
+      "retry_delay": 1000
+    },
+    "error_handling": "Promise.reject with error code",
+    "response_format": "JSON",
+    "token_storage": "wx.setStorageSync / wx.setStorage",
+    "default_headers": {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    "http_method": "wx.request",
+    "upload_method": "wx.uploadFile",
+    "download_method": "wx.downloadFile"
+  },
+  "testing": {
+    "framework": "jest / miniprogram-simulate",
+    "test_dir": "tests",
+    "naming_pattern": "{featureName}.test.js",
+    "min_coverage": 70
+  },
+  "best_practices": {
+    "use_component_based": true,
+    "use_event_bus": true,
+    "use_global_data": true,
+    "use_custom_tabbar": true,
+    "use_custom_navbar": true,
+    "use_wx_sfc": true,
+    "use_rpx_units": true,
+    "use_safe_area": true
+  },
+  "forbidden_patterns": [
+    "Direct DOM manipulation - use WXML components",
+    "Console.log in production - use wx.log",
+    "Set interval without clear - use clearTimeout",
+    "Deep recursion - use iterative approach",
+    "Synchronous network calls - use promises"
+  ],
+  "platform_specific": {
+    "wechat": {
+      "app_id": "your_app_id",
+      "login": "wx.login",
+      "get_user_info": "wx.getUserProfile",
+      "get_phone_number": "button open-type='getPhoneNumber'",
+      "share": "onShareAppMessage",
+      "payment": "wx.requestPayment",
+      "location": "wx.getLocation",
+      "camera": "wx.chooseMedia",
+      "storage": "wx.setStorageSync / wx.getStorageSync"
+    },
+    "alipay": {
+      "app_id": "your_app_id",
+      "login": "my.getPhoneNumber",
+      "share": "my.share"
+    }
+  },
+  "compatibility": {
+    "base_library": "2.0.0",
+    "weapp": ">= 7.0.0",
+    "ios": ">= 9.0",
+    "android": ">= 5.0"
+  },
+  "performance": {
+    "package_size_limit": "2MB",
+    "sub_package_size_limit": "2MB",
+    "total_package_size_limit": "20MB",
+    "lazy_load_components": true,
+    "preload_pages": true
+  }
+}

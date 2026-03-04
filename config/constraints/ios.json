@@ -1,0 +1,147 @@
+{
+  "platform": "ios",
+  "name": "iOS 登录应用",
+  "repository": "ios-login-app",
+  "version": "1.0.0",
+  "project_structure": {
+    "root_dirs": ["Sources", "Tests", "Resources"],
+    "source_dir": "Sources",
+    "test_dir": "Tests",
+    "resource_dir": "Resources",
+    "file_patterns": {
+      "view": "{FeatureName}View.swift",
+      "view_model": "{FeatureName}ViewModel.swift",
+      "model": "{FeatureName}Model.swift",
+      "api": "{FeatureName}API.swift",
+      "config": "{FeatureName}Config.swift",
+      "constant": "{FeatureName}Constants.swift"
+    }
+  },
+  "naming_conventions": {
+    "class": "PascalCase",
+    "method": "camelCase",
+    "variable": "camelCase",
+    "constant": "camelCase with 'k' prefix",
+    "file": "PascalCase",
+    "enum_case": "camelCase",
+    "protocol": "PascalCase with 'Protocol' suffix"
+  },
+  "code_style": {
+    "indentation": "4 spaces",
+    "line_length": 120,
+    "trailing_comma": true,
+    "sort_imports": true,
+    "access_control": "explicit"
+  },
+  "tech_stack": {
+    "language": "Swift",
+    "language_version": "5.9",
+    "framework": "SwiftUI",
+    "minimum_version": "iOS 15.0",
+    "dependencies": [
+      "Alamofire ~> 5.8",
+      "SwiftKeychainWrapper ~> 4.0",
+      "Kingfisher ~> 7.0"
+    ],
+    "build_system": "Xcode Build System",
+    "package_manager": "Swift Package Manager"
+  },
+  "component_mapping": {
+    "Button": "SwiftUI.Button",
+    "TextField": "SwiftUI.TextField",
+    "SecureField": "SwiftUI.SecureField",
+    "Image": "Kingfisher.KFImage",
+    "AsyncImage": "SwiftUI.AsyncImage",
+    "Text": "SwiftUI.Text",
+    "View": "SwiftUI.View",
+    "VStack": "SwiftUI.VStack",
+    "HStack": "SwiftUI.HStack",
+    "ZStack": "SwiftUI.ZStack",
+    "Spacer": "SwiftUI.Spacer",
+    "ScrollView": "SwiftUI.ScrollView",
+    "List": "SwiftUI.List",
+    "NavigationView": "SwiftUI.NavigationView",
+    "Alert": "SwiftUI.Alert",
+    "ProgressView": "SwiftUI.ProgressView"
+  },
+  "style_guide": {
+    "colors": {
+      "primary": "#007AFF",
+      "primary_variant": "#0056B3",
+      "secondary": "#5AC8FA",
+      "secondary_variant": "#0071E3",
+      "background": "#FFFFFF",
+      "surface": "#F5F5F5",
+      "text": "#333333",
+      "text_secondary": "#666666",
+      "border": "#DDDDDD",
+      "error": "#FF3B30",
+      "success": "#34C759",
+      "warning": "#FF9500"
+    },
+    "fonts": {
+      "headline": "System 24 Bold",
+      "headline_large": "System 28 Bold",
+      "body": "System 16 Regular",
+      "body_large": "System 18 Regular",
+      "caption": "System 14 Regular",
+      "caption_small": "System 12 Regular"
+    },
+    "spacing": {
+      "xs": 4,
+      "sm": 8,
+      "md": 16,
+      "lg": 24,
+      "xl": 32,
+      "xxl": 48
+    },
+    "border_radius": {
+      "sm": 4,
+      "md": 8,
+      "lg": 16,
+      "xl": 24,
+      "full": 9999
+    },
+    "shadows": {
+      "sm": "0 2px 4px rgba(0,0,0,0.1)",
+      "md": "0 4px 8px rgba(0,0,0,0.12)",
+      "lg": "0 8px 16px rgba(0,0,0,0.15)"
+    }
+  },
+  "api_integration": {
+    "base_url": "https://api.example.com",
+    "timeout": 30,
+    "retry_policy": {
+      "max_retries": 3,
+      "retry_delay": 1000
+    },
+    "error_handling": "Custom error types (APIError, NetworkError, ValidationError)",
+    "response_format": "Codable",
+    "token_storage": "Keychain",
+    "default_headers": {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    }
+  },
+  "testing": {
+    "framework": "XCTest",
+    "async_framework": "XCTestExpectation",
+    "test_dir": "Tests",
+    "naming_pattern": "{FeatureName}Tests.swift",
+    "min_coverage": 80,
+    "mock_framework": "Cuckoo / OCMock"
+  },
+  "best_practices": {
+    "use_async_await": true,
+    "error_handling": "Result<T, Error>",
+    "state_management": "MVVM with ObservableObject",
+    "navigation": "NavigationStack (iOS 16+)",
+    "dependency_injection": "Environment values"
+  },
+  "forbidden_patterns": [
+    "Force unwrapping (!) - use optional binding instead",
+    "Implicitly unwrapped optionals - unless for @IBOutlets",
+    "Force casting (as!) - use conditional casting (as?)",
+    "Print statements in production - use Logger instead"
+  ]
+}

@@ -1,0 +1,174 @@
+{
+  "platform": "android",
+  "name": "Android 登录应用",
+  "repository": "android-login-app",
+  "version": "1.0.0",
+  "project_structure": {
+    "root_dirs": ["app/src/main/java", "app/src/test/java", "app/src/androidTest/java"],
+    "source_dir": "app/src/main/java",
+    "test_dir": "app/src/test/java",
+    "resource_dir": "app/src/main/res",
+    "file_patterns": {
+      "activity": "{FeatureName}Activity.kt",
+      "view_model": "{FeatureName}ViewModel.kt",
+      "model": "{FeatureName}Model.kt",
+      "api": "{FeatureName}API.kt",
+      "repository": "{FeatureName}Repository.kt",
+      "ui": "{FeatureName}Screen.kt",
+      "theme": "{FeatureName}Theme.kt"
+    }
+  },
+  "naming_conventions": {
+    "class": "PascalCase",
+    "method": "camelCase",
+    "variable": "camelCase",
+    "constant": "UPPER_SNAKE_CASE",
+    "file": "PascalCase",
+    "composable": "PascalCase with 'Content' suffix",
+    "viewmodel": "PascalCase with 'ViewModel' suffix"
+  },
+  "code_style": {
+    "indentation": "4 spaces",
+    "line_length": 120,
+    "ktlint": true,
+    "max_blank_lines": 2,
+    "import_ordering": "alphabetical"
+  },
+  "tech_stack": {
+    "language": "Kotlin",
+    "language_version": "1.9.20",
+    "framework": "Jetpack Compose",
+    "minimum_version": "API 24 (Android 7.0)",
+    "target_version": "API 34 (Android 14)",
+    "dependencies": [
+      "Retrofit 2.9.0",
+      "OkHttp 4.11.0",
+      "EncryptedSharedPreferences 1.1.0",
+      "Coil 2.5.0",
+      "Kotlinx Coroutines 1.7.3",
+      "Hilt 2.48"
+    ],
+    "build_system": "Gradle (Kotlin DSL)",
+    "min_sdk": 24,
+    "target_sdk": 34
+  },
+  "component_mapping": {
+    "Button": "androidx.compose.material3.Button",
+    "OutlinedButton": "androidx.compose.material3.OutlinedButton",
+    "TextButton": "androidx.compose.material3.TextButton",
+    "TextField": "androidx.compose.material3.OutlinedTextField",
+    "SecureField": "androidx.compose.material3.OutlinedTextField with visualTransformation",
+    "Image": "Coil.AsyncImage",
+    "Text": "androidx.compose.material3.Text",
+    "Column": "androidx.compose.foundation.layout.Column",
+    "Row": "androidx.compose.foundation.layout.Row",
+    "Box": "androidx.compose.foundation.layout.Box",
+    "Spacer": "androidx.compose.foundation.layout.Spacer",
+    "LazyColumn": "androidx.compose.foundation.lazy.LazyColumn",
+    "LazyRow": "androidx.compose.foundation.lazy.LazyRow",
+    "Scaffold": "androidx.compose.material3.Scaffold",
+    "TopAppBar": "androidx.compose.material3.TopAppBar",
+    "SnackbarHost": "androidx.compose.material3.SnackbarHost",
+    "AlertDialog": "androidx.compose.material3.AlertDialog",
+    "CircularProgressIndicator": "androidx.compose.material3.CircularProgressIndicator"
+  },
+  "style_guide": {
+    "colors": {
+      "primary": "#007AFF",
+      "on_primary": "#FFFFFF",
+      "primary_container": "#E1F0FF",
+      "on_primary_container": "#002B59",
+      "secondary": "#5AC8FA",
+      "on_secondary": "#FFFFFF",
+      "secondary_container": "#CBE6FF",
+      "on_secondary_container": "#001B38",
+      "background": "#FFFFFF",
+      "on_background": "#333333",
+      "surface": "#F5F5F5",
+      "on_surface": "#333333",
+      "surface_variant": "#E0E0E0",
+      "on_surface_variant": "#666666",
+      "error": "#FF3B30",
+      "on_error": "#FFFFFF",
+      "success": "#34C759",
+      "warning": "#FF9500",
+      "outline": "#DDDDDD",
+      "outline_variant": "#F0F0F0"
+    },
+    "fonts": {
+      "headline": "MaterialTheme.typography.headlineMedium",
+      "headline_large": "MaterialTheme.typography.headlineLarge",
+      "body": "MaterialTheme.typography.bodyMedium",
+      "body_large": "MaterialTheme.typography.bodyLarge",
+      "caption": "MaterialTheme.typography.bodySmall",
+      "label": "MaterialTheme.typography.labelMedium"
+    },
+    "spacing": {
+      "xs": "4.dp",
+      "sm": "8.dp",
+      "md": "16.dp",
+      "lg": "24.dp",
+      "xl": "32.dp",
+      "xxl": "48.dp"
+    },
+    "border_radius": {
+      "sm": "4.dp",
+      "md": "8.dp",
+      "lg": "16.dp",
+      "xl": "24.dp",
+      "full": "9999.dp"
+    },
+    "elevation": {
+      "sm": "1.dp",
+      "md": "4.dp",
+      "lg": "8.dp",
+      "xl": "16.dp"
+    },
+    "padding": {
+      "sm": "8.dp",
+      "md": "16.dp",
+      "lg": "24.dp"
+    }
+  },
+  "api_integration": {
+    "base_url": "https://api.example.com",
+    "timeout": 30,
+    "retry_policy": {
+      "max_retries": 3,
+      "retry_delay": 1000
+    },
+    "error_handling": "Result<T, APIError>",
+    "response_format": "Kotlinx Serialization",
+    "token_storage": "EncryptedSharedPreferences",
+    "default_headers": {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    "interceptors": ["LoggingInterceptor", "AuthInterceptor"]
+  },
+  "testing": {
+    "unit_framework": "JUnit4",
+    "ui_framework": "ComposeTestRule",
+    "async_framework": "runBlockingTest",
+    "test_dir": "app/src/test/java",
+    "ui_test_dir": "app/src/androidTest/java",
+    "naming_pattern": "{FeatureName}Test.kt",
+    "min_coverage": 80,
+    "mock_framework": "MockK"
+  },
+  "best_practices": {
+    "use_coroutines": true,
+    "use_state_hoisting": true,
+    "dependency_injection": "Hilt",
+    "state_management": "ViewModel + StateFlow",
+    "navigation": "Navigation Compose",
+    "lifecycle_aware": "rememberSaveable"
+  },
+  "forbidden_patterns": [
+    "Global state - use proper DI instead",
+    "Blocking calls in Composable - use LaunchedEffect",
+    "Hardcoded strings - use string resources",
+    "Implicit casts (as) - use safe casts (as?)",
+    "!! operator - use safe calls or null checks"
+  ]
+}

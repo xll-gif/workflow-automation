@@ -1,0 +1,153 @@
+{
+  "platform": "harmonyos",
+  "name": "HarmonyOS 登录应用",
+  "repository": "harmonyos-login-app",
+  "version": "1.0.0",
+  "project_structure": {
+    "root_dirs": ["entry/src/main/ets", "entry/src/ohosTest"],
+    "source_dir": "entry/src/main/ets",
+    "test_dir": "entry/src/ohosTest",
+    "resource_dir": "entry/src/main/resources",
+    "file_patterns": {
+      "page": "{FeatureName}Page.ets",
+      "view": "{FeatureName}View.ets",
+      "view_model": "{FeatureName}ViewModel.ets",
+      "model": "{FeatureName}Model.ets",
+      "api": "{FeatureName}API.ets",
+      "service": "{FeatureName}Service.ets"
+    }
+  },
+  "naming_conventions": {
+    "class": "PascalCase",
+    "method": "camelCase",
+    "variable": "camelCase",
+    "constant": "UPPER_SNAKE_CASE",
+    "file": "PascalCase",
+    "interface": "PascalCase with 'Interface' suffix",
+    "enum_case": "PascalCase"
+  },
+  "code_style": {
+    "indentation": "4 spaces",
+    "line_length": 120,
+    "semicolon": "optional",
+    "strict_type": true
+  },
+  "tech_stack": {
+    "language": "ArkTS",
+    "language_version": "1.0.0",
+    "framework": "ArkUI",
+    "minimum_version": "API 9",
+    "target_version": "API 12",
+    "dependencies": [
+      "@ohos/axios",
+      "@ohos/datastore",
+      "@ohos/imageKnife"
+    ],
+    "build_system": "hvigor",
+    "package_manager": "ohpm"
+  },
+  "component_mapping": {
+    "Button": "Button",
+    "Text": "Text",
+    "TextInput": "TextInput",
+    "Image": "Image",
+    "Column": "Column",
+    "Row": "Row",
+    "Stack": "Stack",
+    "Flex": "Flex",
+    "List": "List",
+    "ListItem": "ListItem",
+    "Grid": "Grid",
+    "GridItem": "GridItem",
+    "Scroll": "Scroll",
+    "Swiper": "Swiper",
+    "Tabs": "Tabs",
+    "TabContent": "TabContent",
+    "Navigator": "Navigator",
+    "AlertDialog": "AlertDialog",
+    "LoadingProgress": "LoadingProgress"
+  },
+  "style_guide": {
+    "colors": {
+      "primary": "#007DFF",
+      "primary_container": "#D1E4FF",
+      "on_primary_container": "#001A41",
+      "secondary": "#5C5E71",
+      "secondary_container": "#E1E2EC",
+      "on_secondary_container": "#191A2C",
+      "background": "#FEFBFF",
+      "on_background": "#1B1B1F",
+      "surface": "#FEFBFF",
+      "on_surface": "#1B1B1F",
+      "surface_variant": "#E3E2EC",
+      "on_surface_variant": "#46474F",
+      "outline": "#767680",
+      "error": "#BA1A1A",
+      "on_error": "#FFFFFF",
+      "success": "#4CAF50",
+      "warning": "#FF9800"
+    },
+    "fonts": {
+      "headline": "28vp, FontWeight.Medium",
+      "body": "16vp, FontWeight.Regular",
+      "body_large": "18vp, FontWeight.Regular",
+      "caption": "14vp, FontWeight.Regular",
+      "label": "14vp, FontWeight.Medium"
+    },
+    "spacing": {
+      "xs": "4vp",
+      "sm": "8vp",
+      "md": "16vp",
+      "lg": "24vp",
+      "xl": "32vp",
+      "xxl": "48vp"
+    },
+    "border_radius": {
+      "sm": "4vp",
+      "md": "8vp",
+      "lg": "16vp",
+      "xl": "24vp",
+      "full": "9999vp"
+    },
+    "padding": {
+      "sm": "8vp",
+      "md": "16vp",
+      "lg": "24vp"
+    }
+  },
+  "api_integration": {
+    "base_url": "https://api.example.com",
+    "timeout": 30,
+    "retry_policy": {
+      "max_retries": 3,
+      "retry_delay": 1000
+    },
+    "error_handling": "BusinessError",
+    "response_format": "JSON",
+    "token_storage": "preferences (Encrypted)",
+    "default_headers": {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    "http_library": "axios"
+  },
+  "testing": {
+    "framework": "hypium",
+    "test_dir": "entry/src/ohosTest",
+    "naming_pattern": "{FeatureName}Test.ets",
+    "min_coverage": 80
+  },
+  "best_practices": {
+    "use_declarative_ui": true,
+    "use_state_management": "@State, @Prop, @Link",
+    "use_lifecycle": "aboutToAppear, aboutToDisappear",
+    "navigation": "router.pushUrl / router.replaceUrl",
+    "data_persistence": "Preferences / RelationalStore"
+  },
+  "forbidden_patterns": [
+    "Implicit any types - use proper type annotations",
+    "Console.log in production - use HiLog",
+    "Direct DOM manipulation - use ArkUI components",
+    "Global variables - use proper state management"
+  ]
+}

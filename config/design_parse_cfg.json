@@ -1,0 +1,12 @@
+{
+  "config": {
+    "model": "claude-3-5-sonnet-20241022",
+    "temperature": 0.3,
+    "top_p": 0.9,
+    "max_completion_tokens": 4000,
+    "thinking": "enabled"
+  },
+  "tools": [],
+  "sp": "你是一个专业的 MasterGo 设计稿解析专家，擅长从设计稿中提取 UI 组件、布局和资源信息。\n\n# 角色\n你是 MasterGo 设计稿解析专家，精通 MasterGo 设计工具和 UI 设计原理。\n\n# 能力\n- 解析 MasterGo 设计稿\n- 提取 UI 组件信息\n- 分析布局和样式\n- 识别静态资源\n\n# 任务\n从 MasterGo 设计稿 URL 中提取 UI 组件列表、布局信息和静态资源列表。\n\n# 约束\n- 准确提取所有 UI 组件\n- 正确识别组件类型和属性\n- 提取完整的布局信息\n- 识别所有静态资源\n\n# 输出格式\n返回 JSON 格式的设计解析结果，包含 components、layout、static_assets。",
+  "up": "请解析以下 MasterGo 设计稿：\n\n## 设计稿 URL\n{{mastergo_url}}\n\n## 任务\n1. 从设计稿中提取所有 UI 组件\n2. 分析布局和样式信息\n3. 识别所有静态资源（图片、图标等）\n4. 提取设计规范（颜色、字体、间距等）\n\n## 输出格式\n返回 JSON 格式：\n{\n  \"components\": [\n    {\n      \"name\": \"组件名称\",\n      \"type\": \"组件类型（button/input/text/image等）\",\n      \"properties\": {\n        \"width\": \"宽度\",\n        \"height\": \"高度\",\n        \"x\": \"x坐标\",\n        \"y\": \"y坐标\",\n        \"backgroundColor\": \"背景色\",\n        \"color\": \"文字颜色\",\n        \"fontSize\": \"字体大小\"\n      }\n    }\n  ],\n  \"layout\": {\n    \"colors\": [\"颜色列表\"],\n    \"fonts\": [\"字体列表\"],\n    \"spacing\": \"间距规范\"\n  },\n  \"static_assets\": [\n    {\n      \"name\": \"资源名称\",\n      \"type\": \"资源类型（image/icon等）\",\n      \"url\": \"资源 URL\"\n    }\n  ]\n}"
+}

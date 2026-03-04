@@ -89,7 +89,8 @@ def android_code_generation_node(
     
     try:
         # 初始化 LLM 客户端
-        llm_client = LLMClient(llm_config)
+        ctx = runtime.context
+        llm_client = LLMClient(ctx=ctx)
         
         # 构建消息
         messages = [
@@ -98,7 +99,7 @@ def android_code_generation_node(
         ]
         
         # 调用 LLM
-        logger.info("正在调用大语言模型生成 Android 代码...")
+        logger.info(f"调用大模型: {llm_config.get('model', 'unknown')}")
         response = llm_client.invoke(messages)
         
         # 提取响应内容
@@ -112,7 +113,29 @@ def android_code_generation_node(
         
         # 解析生成的代码
         try:
-            generated_files = json.loads(response_text)
+            result = json.loads(response_text)
+
+            # 检查返回格式
+            if isinstance(result, dict):
+                # 如果是 dict，检查是否有 generated_files 字段
+                if 'generated_files' in result:
+                    generated_files = result['generated_files']
+                    summary = result.get('summary', summary)
+                else:
+                    # 如果没有 generated_files 字段，将整个 dict 作为单个文件
+                    generated_files = [{
+                        "path": "android.json",
+                        "content": json.dumps(result, ensure_ascii=False, indent=2)
+                    }]
+            elif isinstance(result, list):
+                # 如果是 list，直接使用
+                generated_files = result
+            else:
+                # 其他情况，将结果作为单个文件
+                generated_files = [{
+                    "path": "android.json",
+                    "content": json.dumps(result, ensure_ascii=False, indent=2)
+                }]
         except json.JSONDecodeError:
             # 如果不是 JSON，尝试提取代码块
             import re

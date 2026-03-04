@@ -1,0 +1,185 @@
+{
+  "platform": "h5",
+  "name": "H5 登录应用",
+  "repository": "h5-login-app",
+  "version": "1.0.0",
+  "project_structure": {
+    "root_dirs": ["src", "tests", "public"],
+    "source_dir": "src",
+    "test_dir": "tests",
+    "public_dir": "public",
+    "file_patterns": {
+      "page": "{FeatureName}Page.vue",
+      "component": "{FeatureName}Component.vue",
+      "view": "{FeatureName}View.vue",
+      "store": "{featureName}Store.ts",
+      "api": "{featureName}API.ts",
+      "service": "{FeatureName}Service.ts",
+      "composable": "use{FeatureName}.ts",
+      "type": "{FeatureName}Types.ts"
+    }
+  },
+  "naming_conventions": {
+    "class": "PascalCase",
+    "method": "camelCase",
+    "variable": "camelCase",
+    "constant": "UPPER_SNAKE_CASE",
+    "file": "PascalCase",
+    "component": "PascalCase",
+    "composable": "camelCase with 'use' prefix",
+    "store": "camelCase with 'Store' suffix"
+  },
+  "code_style": {
+    "indentation": "2 spaces",
+    "line_length": 120,
+    "quotes": "single",
+    "semi": true,
+    "sort_imports": true,
+    "trailing_comma": "es5",
+    "print_width": 120
+  },
+  "tech_stack": {
+    "language": "TypeScript",
+    "language_version": "5.3",
+    "framework": "Vue 3",
+    "ui_library": "Element Plus / Ant Design Vue",
+    "build_tool": "Vite",
+    "minimum_version": "ES2020",
+    "dependencies": [
+      "vue@^3.4",
+      "vue-router@^4.2",
+      "pinia@^2.1",
+      "axios@^1.6",
+      "element-plus@^2.5",
+      "@element-plus/icons-vue@^2.3",
+      "crypto-js@^4.2"
+    ],
+    "dev_dependencies": [
+      "@vitejs/plugin-vue@^5.0",
+      "typescript@^5.3",
+      "vite@^5.0",
+      "vitest@^1.1",
+      "@vue/test-utils@^2.4"
+    ]
+  },
+  "component_mapping": {
+    "Button": "el-button / a-button",
+    "Input": "el-input / a-input",
+    "InputPassword": "el-input type='password' / a-input-password",
+    "Image": "el-image / a-image",
+    "Text": "span / p",
+    "Form": "el-form / a-form",
+    "FormItem": "el-form-item / a-form-item",
+    "Row": "el-row / a-row",
+    "Col": "el-col / a-col",
+    "Card": "el-card / a-card",
+    "Dialog": "el-dialog / a-modal",
+    "Message": "ElMessage / message",
+    "Notification": "ElNotification / notification",
+    "Loading": "el-loading / a-spin",
+    "Select": "el-select / a-select",
+    "Checkbox": "el-checkbox / a-checkbox",
+    "Radio": "el-radio / a-radio",
+    "DatePicker": "el-date-picker / a-date-picker",
+    "Table": "el-table / a-table",
+    "Pagination": "el-pagination / a-pagination"
+  },
+  "style_guide": {
+    "colors": {
+      "primary": "#409EFF",
+      "primary_hover": "#66b1ff",
+      "primary_active": "#3a8ee6",
+      "success": "#67C23A",
+      "warning": "#E6A23C",
+      "danger": "#F56C6C",
+      "info": "#909399",
+      "background": "#FFFFFF",
+      "background_page": "#F5F7FA",
+      "text_primary": "#303133",
+      "text_regular": "#606266",
+      "text_secondary": "#909399",
+      "text_placeholder": "#C0C4CC",
+      "border_base": "#DCDFE6",
+      "border_light": "#E4E7ED",
+      "border_lighter": "#EBEEF5",
+      "border_extra_light": "#F2F6FC"
+    },
+    "fonts": {
+      "headline": "24px, 500",
+      "body": "14px, 400",
+      "body_large": "16px, 400",
+      "caption": "12px, 400",
+      "label": "14px, 500"
+    },
+    "spacing": {
+      "xs": "4px",
+      "sm": "8px",
+      "md": "16px",
+      "lg": "24px",
+      "xl": "32px",
+      "xxl": "48px"
+    },
+    "border_radius": {
+      "sm": "4px",
+      "md": "6px",
+      "lg": "8px",
+      "xl": "12px",
+      "full": "9999px"
+    },
+    "shadows": {
+      "sm": "0 2px 4px rgba(0,0,0,0.12)",
+      "md": "0 4px 12px rgba(0,0,0,0.15)",
+      "lg": "0 8px 16px rgba(0,0,0,0.18)"
+    }
+  },
+  "api_integration": {
+    "base_url": "https://api.example.com",
+    "timeout": 30000,
+    "retry_policy": {
+      "max_retries": 3,
+      "retry_delay": 1000
+    },
+    "error_handling": "AxiosInterceptor",
+    "response_format": "JSON",
+    "token_storage": "localStorage / sessionStorage / cookie",
+    "default_headers": {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    "request_interceptors": ["auth", "timestamp"],
+    "response_interceptors": ["error_handler", "token_refresh"]
+  },
+  "testing": {
+    "unit_framework": "Vitest",
+    "component_framework": "@vue/test-utils",
+    "e2e_framework": "Playwright / Cypress",
+    "test_dir": "tests",
+    "naming_pattern": "{FeatureName}.spec.ts / {FeatureName}.test.ts",
+    "min_coverage": 80,
+    "assertion_library": "Vitest / Chai"
+  },
+  "best_practices": {
+    "use_composition_api": true,
+    "use_typescript_strict": true,
+    "use_script_setup": true,
+    "state_management": "Pinia",
+    "routing": "Vue Router 4",
+    "http_client": "Axios with interceptors",
+    "css_preprocessor": "SCSS / Less",
+    "css_framework": "Tailwind CSS (optional)",
+    "form_validation": "vee-validate / async-validator"
+  },
+  "forbidden_patterns": [
+    "jQuery - use Vue instead",
+    "Global CSS - use scoped styles",
+    "this.$refs type issues - use template refs",
+    "Direct DOM manipulation - use Vue refs",
+    "Console.log in production - use logger"
+  ],
+  "browser_support": {
+    "chrome": ">= 90",
+    "firefox": ">= 88",
+    "safari": ">= 14",
+    "edge": ">= 90"
+  }
+}

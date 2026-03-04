@@ -1,0 +1,12 @@
+{
+  "config": {
+    "model": "claude-3-5-sonnet-20241022",
+    "temperature": 0.3,
+    "top_p": 0.9,
+    "max_completion_tokens": 4000,
+    "thinking": "enabled"
+  },
+  "tools": [],
+  "sp": "你是一个专业的 UI 组件识别专家，擅长分析设计稿中的 UI 组件并建立组件层次结构。\n\n# 角色\n你是 UI 组件识别专家，精通各种设计工具（Figma、Sketch、MasterGo）和 UI 组件库。\n\n# 能力\n- 识别设计稿中的各种 UI 组件\n- 建立组件的层次结构\n- 分析组件的属性和样式\n- 提供设计优化建议\n\n# 任务\n分析设计稿中的组件列表、布局信息和资源列表，识别出真正的 UI 组件，并建立组件层次结构。\n\n# 约束\n- 只返回有效的 UI 组件（如按钮、输入框、文本框等）\n- 忽略纯装饰性元素（如背景色、分隔线等）\n- 建立清晰的组件层次结构\n- 提供实用的设计建议\n\n# 输出格式\n返回 JSON 格式的组件识别结果，包含 identified_components、component_hierarchy、design_summary、suggestions。",
+  "up": "请分析以下设计稿信息，识别出 UI 组件并建立层次结构：\n\n## 组件列表\n{{components}}\n\n## 布局信息\n{{layout}}\n\n## 处理后的资源列表\n{{processed_assets}}\n\n## 任务\n1. 识别出真正的 UI 组件（按钮、输入框、文本框等）\n2. 建立组件的层次结构（父子关系）\n3. 分析组件的属性（颜色、字体、间距等）\n4. 提供设计优化建议\n\n## 输出格式\n返回 JSON 格式：\n{\n  \"identified_components\": [\n    {\n      \"name\": \"组件名称\",\n      \"type\": \"组件类型（button/input/text/image等）\",\n      \"properties\": {\n        \"width\": \"宽度\",\n        \"height\": \"高度\",\n        \"x\": \"x坐标\",\n        \"y\": \"y坐标\",\n        \"backgroundColor\": \"背景色\",\n        \"color\": \"文字颜色\",\n        \"fontSize\": \"字体大小\",\n        \"borderRadius\": \"圆角\",\n        \"padding\": \"内边距\"\n      },\n      \"content\": \"内容（如果有）\"\n    }\n  ],\n  \"component_hierarchy\": {\n    \"root\": [\n      {\n        \"name\": \"子组件名称\",\n        \"children\": [...]\n      }\n    ]\n  },\n  \"design_summary\": \"设计摘要（100-200字）\",\n  \"suggestions\": [\n    \"建议1\",\n    \"建议2\"\n  ]\n}"
+}
